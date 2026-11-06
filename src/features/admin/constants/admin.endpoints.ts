@@ -1,0 +1,16 @@
+export const ADMIN_ENDPOINTS = {
+  dashboard: '/admin/dashboard',
+  revenue: '/admin/dashboard/revenue',
+  users: '/admin/users',
+  lockUser: (id: string) => `/admin/users/${encodeURIComponent(id)}/lock`,
+  pendingSalons: '/admin/salons/pending',
+  salon: (id: string) => `/admin/salons/${encodeURIComponent(id)}`,
+  decideSalon: (id: string, action: 'approve' | 'reject') => `/admin/salons/${encodeURIComponent(id)}/${action}`,
+  publicSupport: '/support/contact',
+  adminSupport: '/admin/support/contact',
+  salonChanges: '/admin/salon-changes',
+  decideChange: (id: string, action: 'approve' | 'reject') => `/admin/salon-changes/${encodeURIComponent(id)}/${action}`,
+  disputes: '/admin/booking-disputes',
+  dispute: (id: string) => `/admin/booking-disputes/${encodeURIComponent(id)}`,
+  resolveDispute: (id: string) => `/admin/booking-disputes/${encodeURIComponent(id)}/resolution`,
+} as const

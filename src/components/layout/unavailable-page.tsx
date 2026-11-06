@@ -1,0 +1,1 @@
+export function UnavailablePage() { return <section className="mx-auto max-w-3xl p-8"><h1 className="font-serif text-3xl">Tính năng chưa khả dụng</h1><p className="mt-4">Chức năng này chưa được hỗ trợ bởi hệ thống hiện tại.</p></section> }
