@@ -23,7 +23,18 @@ export class OwnerSalonMapper extends BaseMapper<OwnerSalonDto, OwnerSalon> {
     return { id: safeString(pickField(dto, ['id'])), name: safeString(pickField(dto, ['name'])), description: safeString(pickField(dto, ['description'])), address: safeString(pickField(dto, ['address'])), city: safeString(pickField(dto, ['city'])), district: safeString(pickField(dto, ['district'])), phone: safeString(pickField(dto, ['phone'])), email: safeString(pickField(dto, ['email'])), latitude: Number.isFinite(lat) ? lat : null, longitude: Number.isFinite(lng) ? lng : null, logoUrl: safeString(pickField(dto, ['logoUrl'])) || null, imageUrls: safeArray<string>(pickField(dto, ['imageUrls'])), status: safeString(pickField(dto, ['status'])) }
   }
   toSaveDto(model: SaveSalon): SaveSalonDto {
-    return { name: model.name.trim(), description: model.description.trim(), address: model.address.trim(), city: model.city.trim(), district: model.district.trim(), phone: model.phone.trim(), email: model.email.trim(), ...(model.latitude !== undefined ? { latitude: model.latitude } : {}), ...(model.longitude !== undefined ? { longitude: model.longitude } : {}) }
+    return {
+      name: model.name.trim(),
+      description: model.description.trim(),
+      address: model.address.trim(),
+      city: model.city.trim(),
+      district: model.district.trim(),
+      phone: model.phone.trim(),
+      email: model.email.trim(),
+      ...(model.logoUrl !== undefined ? { logoUrl: model.logoUrl } : {}),
+      ...(model.latitude !== undefined ? { latitude: model.latitude } : {}),
+      ...(model.longitude !== undefined ? { longitude: model.longitude } : {}),
+    }
   }
 }
 export class SalonChangeMapper extends BaseMapper<SalonChangeDto, SalonChange> {

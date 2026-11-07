@@ -10,4 +10,5 @@ export interface ProfileDto {
 export interface UpdateProfileDto {
   fullName: string
   phone: string
+  avatarUrl?: string | null
 }

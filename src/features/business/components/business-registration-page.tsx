@@ -7,9 +7,10 @@ import {
   RefreshCw,
   ArrowRight,
   ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
-import { refreshSession } from '@/lib/axios'
+import { apiError, refreshSession } from '@/lib/axios'
 import {
   useCreateRegistration,
   useRegistration,
@@ -65,12 +66,24 @@ export function BusinessRegistrationPage() {
     address: '',
     city: '',
     district: '',
-    phone: '',
+    phone: user?.phone ?? '',
     email: user?.email ?? '',
     description: '',
   })
   const [error, setError] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
   const roleRefreshAttempted = useRef(false)
+
+  // Prefill phone and email if user profile is loaded or updated
+  useEffect(() => {
+    if (user) {
+      setDraft((prev) => ({
+        ...prev,
+        phone: prev.phone || user.phone || '',
+        email: prev.email || user.email || '',
+      }))
+    }
+  }, [user])
 
   useEffect(() => {
     if (
@@ -88,10 +101,12 @@ export function BusinessRegistrationPage() {
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setError('')
+    setSuccessMsg('')
     try {
       await create.mutateAsync(draft)
-    } catch {
-      setError('Không gửi được đăng ký. Vui lòng kiểm tra lại thông tin và thử lại.')
+      setSuccessMsg('Gửi hồ sơ đăng ký thành công! Đội ngũ quản trị viên Ellora đang xem xét hồ sơ của bạn.')
+    } catch (err: unknown) {
+      setError(apiError(err) || 'Không gửi được đăng ký. Vui lòng kiểm tra lại thông tin và thử lại.')
     }
   }
 
@@ -140,6 +155,13 @@ export function BusinessRegistrationPage() {
       ) : registration.isSuccess && registration.data ? (
         /* Status Card */
         <section className="rounded-3xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm shadow-pink-950/5">
+          {successMsg && (
+            <div className="mb-6 flex items-center gap-2 rounded-2xl bg-emerald-50 p-4 text-xs font-medium text-emerald-800 border border-emerald-200">
+              <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
           <div className="flex items-center justify-between border-b border-gray-100 pb-4">
             <div>
               <span className="text-xs font-medium text-gray-400">Tên cơ sở</span>
@@ -161,6 +183,11 @@ export function BusinessRegistrationPage() {
               <strong className="text-gray-800">Địa chỉ:</strong> {registration.data.address},{' '}
               {registration.data.district}, {registration.data.city}
             </p>
+            {registration.data.phone && (
+              <p>
+                <strong className="text-gray-800">Số điện thoại liên hệ:</strong> {registration.data.phone}
+              </p>
+            )}
           </div>
 
           {statusDescriptions[registration.data.status] && (
@@ -203,6 +230,13 @@ export function BusinessRegistrationPage() {
           onSubmit={submit}
           className="rounded-3xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm shadow-pink-950/5 space-y-5"
         >
+          {successMsg && (
+            <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-4 text-xs font-medium text-emerald-800 border border-emerald-200">
+              <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
           <div className="grid gap-5 sm:grid-cols-2">
             {formFields.map((field) => (
               <div

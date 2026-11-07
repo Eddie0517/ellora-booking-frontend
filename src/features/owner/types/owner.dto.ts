@@ -32,6 +32,7 @@ export interface SaveSalonDto {
   district: string
   phone: string
   email: string
+  logoUrl?: string | null
   latitude?: number | null
   longitude?: number | null
 }

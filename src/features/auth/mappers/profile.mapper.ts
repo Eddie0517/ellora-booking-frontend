@@ -15,8 +15,12 @@ export class ProfileMapper extends BaseMapper<ProfileDto, Profile> {
       role: role === 'ADMIN' || role === 'SALON_OWNER' ? role : 'CUSTOMER',
     }
   }
-  toUpdateDto(profile: Pick<Profile, 'fullName' | 'phone'>): UpdateProfileDto {
-    return { fullName: profile.fullName.trim(), phone: profile.phone.trim() }
+  toUpdateDto(profile: Pick<Profile, 'fullName' | 'phone'> & { avatarUrl?: string | null }): UpdateProfileDto {
+    return {
+      fullName: profile.fullName.trim(),
+      phone: profile.phone.trim(),
+      ...(profile.avatarUrl !== undefined ? { avatarUrl: profile.avatarUrl } : {}),
+    }
   }
 }
 export const profileMapper = new ProfileMapper()

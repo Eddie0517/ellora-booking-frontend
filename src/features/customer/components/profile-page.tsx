@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import {
   CheckCircle2,
   AlertCircle,
@@ -10,17 +10,20 @@ import {
   Copy,
   Check,
   ShieldCheck,
-  Sparkles,
-  Info,
+  Camera,
+  RefreshCw,
 } from 'lucide-react'
-import { useProfile, useUpdateProfile } from '@/features/auth/queries/profile.queries'
+import { useProfile, useUpdateProfile, useUploadAvatar } from '@/features/auth/queries/profile.queries'
 import { apiError } from '@/lib/axios'
 import { toast } from 'sonner'
 
 export function ProfilePage() {
   const profile = useProfile()
   const update = useUpdateProfile()
-  const [draft, setDraft] = useState<{ fullName: string; phone: string } | null>(null)
+  const uploadAvatar = useUploadAvatar()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [draft, setDraft] = useState<{ fullName: string; phone: string; avatarUrl?: string | null } | null>(null)
   const [message, setMessage] = useState('')
   const [isError, setIsError] = useState(false)
   const [copiedId, setCopiedId] = useState(false)
@@ -51,10 +54,16 @@ export function ProfilePage() {
     )
   }
 
-  const value = draft ?? { fullName: profile.data.fullName, phone: profile.data.phone || '' }
+  const value = draft ?? {
+    fullName: profile.data.fullName,
+    phone: profile.data.phone || '',
+    avatarUrl: profile.data.avatarUrl,
+  }
+
   const isDirty = draft !== null && (
     draft.fullName !== profile.data.fullName ||
-    draft.phone !== (profile.data.phone || '')
+    draft.phone !== (profile.data.phone || '') ||
+    draft.avatarUrl !== profile.data.avatarUrl
   )
 
   const copyId = async () => {
@@ -75,6 +84,23 @@ export function ProfilePage() {
     setIsError(false)
   }
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const url = await uploadAvatar.mutateAsync(file)
+      await update.mutateAsync({
+        fullName: value.fullName.trim(),
+        phone: value.phone.trim(),
+        avatarUrl: url,
+      })
+      setDraft(prev => prev ? { ...prev, avatarUrl: url } : null)
+      toast.success('Cập nhật ảnh đại diện thành công!')
+    } catch (err: unknown) {
+      toast.error(apiError(err) || 'Không thể tải ảnh đại diện lên.')
+    }
+  }
+
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     setMessage('')
@@ -83,6 +109,7 @@ export function ProfilePage() {
       await update.mutateAsync({
         fullName: value.fullName.trim(),
         phone: value.phone.trim(),
+        avatarUrl: value.avatarUrl,
       })
       setDraft(null)
       const successText = 'Hồ sơ cá nhân đã được cập nhật thành công.'
@@ -114,16 +141,34 @@ export function ProfilePage() {
       <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white p-5 sm:p-6 shadow-xs shadow-rose-950/5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-tr from-brand to-rose-400 text-xl font-bold text-white shadow-xs">
-              {profile.data.avatarUrl ? (
-                <img
-                  src={profile.data.avatarUrl}
-                  alt={profile.data.fullName}
-                  className="h-full w-full rounded-2xl object-cover"
-                />
-              ) : (
-                initial
-              )}
+            <div className="relative group">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-linear-to-tr from-brand to-rose-400 text-xl font-bold text-white shadow-xs overflow-hidden">
+                {value.avatarUrl ? (
+                  <img
+                    src={value.avatarUrl}
+                    alt={value.fullName}
+                    className="h-full w-full rounded-2xl object-cover"
+                  />
+                ) : (
+                  initial
+                )}
+              </div>
+              <button
+                type="button"
+                disabled={uploadAvatar.isPending}
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-brand text-white shadow-sm hover:bg-brand-dark transition disabled:opacity-50"
+                title="Thay đổi ảnh đại diện"
+              >
+                {uploadAvatar.isPending ? <RefreshCw size={12} className="animate-spin" /> : <Camera size={13} />}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -158,142 +203,122 @@ export function ProfilePage() {
       >
         <div className="border-b border-gray-100 pb-4">
           <h3 className="text-sm font-bold text-gray-900">Thông tin liên lạc & Định danh</h3>
-          <p className="mt-0.5 text-xs text-gray-400">
-            Hãy chắc chắn thông tin số điện thoại chính xác để nhận thông báo lịch làm móng.
+          <p className="text-xs text-gray-500 mt-0.5">
+            Các trường đánh dấu sao đỏ là bắt buộc.
           </p>
         </div>
 
-        {/* Input: Full Name */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label htmlFor="fullName" className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
-              <User size={13} className="text-brand" />
-              <span>Họ và tên</span>
-              <span className="text-red-500">*</span>
-            </label>
-            <span className="text-[11px] text-gray-400">
-              {value.fullName.length}/150
-            </span>
-          </div>
-          <input
-            id="fullName"
-            type="text"
-            value={value.fullName}
-            onChange={(e) => setDraft({ ...value, fullName: e.target.value })}
-            required
-            minLength={2}
-            maxLength={150}
-            placeholder="Ví dụ: Nguyễn Thị Mai"
-            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-brand focus:ring-3 focus:ring-brand/10 shadow-2xs"
-          />
-        </div>
-
-        {/* Input: Email (Disabled) */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label htmlFor="email" className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
-              <Mail size={13} className="text-brand" />
-              <span>Địa chỉ email</span>
-            </label>
-            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
-              <ShieldCheck size={11} className="text-gray-400" />
-              <span>Cố định</span>
-            </span>
-          </div>
-          <input
-            id="email"
-            value={profile.data.email}
-            disabled
-            className="w-full rounded-2xl border border-gray-200/60 bg-gray-50/80 px-4 py-3 text-sm text-gray-500 cursor-not-allowed select-none"
-          />
-          <p className="flex items-center gap-1 text-[11px] text-gray-400">
-            <Info size={11} />
-            <span>Email gắn liền với tài khoản đăng nhập của bạn và không thể sửa đổi trực tiếp.</span>
-          </p>
-        </div>
-
-        {/* Input: Phone */}
-        <div className="space-y-1.5">
-          <label htmlFor="phone" className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
-            <Phone size={13} className="text-brand" />
-            <span>Số điện thoại liên hệ</span>
-          </label>
-          <input
-            id="phone"
-            type="tel"
-            maxLength={20}
-            value={value.phone}
-            onChange={(e) => setDraft({ ...value, phone: e.target.value })}
-            placeholder="Ví dụ: 0912 345 678"
-            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-brand focus:ring-3 focus:ring-brand/10 shadow-2xs"
-          />
-          <p className="text-[11px] text-gray-400">
-            Số điện thoại sẽ được gửi tới salon khi bạn xác nhận đặt lịch hẹn để nhân viên tiện đón tiếp.
-          </p>
-        </div>
-
-        {/* Feedback message banner */}
+        {/* Global Feedback Banner */}
         {message && (
           <div
-            role="alert"
-            className={`flex items-center gap-2.5 rounded-2xl p-3.5 text-xs border transition-all ${
+            className={`flex items-start gap-3 rounded-2xl p-4 text-xs font-medium border ${
               isError
                 ? 'border-red-200 bg-red-50 text-red-700'
                 : 'border-emerald-200 bg-emerald-50 text-emerald-800'
             }`}
           >
             {isError ? (
-              <AlertCircle size={16} className="shrink-0 text-red-600" />
+              <AlertCircle size={16} className="mt-0.5 shrink-0 text-red-600" />
             ) : (
-              <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+              <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-600" />
             )}
-            <span className="font-medium">{message}</span>
+            <div className="flex-1">{message}</div>
           </div>
         )}
 
-        {/* Privacy Note Card */}
-        <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4">
-          <div className="flex items-start gap-3">
-            <Sparkles size={16} className="mt-0.5 text-brand shrink-0" />
-            <div className="text-xs text-gray-600 leading-relaxed">
-              <strong className="text-gray-900">Cam kết bảo mật dữ liệu:</strong> Ellora cam kết bảo mật toàn diện thông tin cá nhân của bạn theo tiêu chuẩn quốc tế và không chia sẻ cho bên thứ ba vì mục đích tiếp thị.
-            </div>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {/* Full Name */}
+          <div className="space-y-1.5 sm:col-span-2">
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+              <User size={14} className="text-gray-400" />
+              <span>Họ và tên của bạn</span>
+              <span className="text-brand">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              minLength={2}
+              maxLength={150}
+              value={value.fullName}
+              onChange={(e) =>
+                setDraft({
+                  ...value,
+                  fullName: e.target.value,
+                })
+              }
+              placeholder="Nhập họ và tên đầy đủ"
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-xs text-gray-900 outline-none transition focus:border-brand focus:ring-1 focus:ring-brand placeholder:text-gray-400 shadow-2xs"
+            />
+          </div>
+
+          {/* Phone Number */}
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+              <Phone size={14} className="text-gray-400" />
+              <span>Số điện thoại</span>
+            </label>
+            <input
+              type="tel"
+              maxLength={20}
+              value={value.phone}
+              onChange={(e) =>
+                setDraft({
+                  ...value,
+                  phone: e.target.value,
+                })
+              }
+              placeholder="Ví dụ: 0912 345 678"
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-xs text-gray-900 outline-none transition focus:border-brand focus:ring-1 focus:ring-brand placeholder:text-gray-400 shadow-2xs"
+            />
+            <p className="text-[11px] text-gray-400">
+              Dùng để tiệm làm móng liên hệ xác nhận lịch hẹn của bạn.
+            </p>
+          </div>
+
+          {/* Email (Read-only) */}
+          <div className="space-y-1.5">
+            <label className="flex items-center justify-between text-xs font-semibold text-gray-700">
+              <span className="flex items-center gap-1.5">
+                <Mail size={14} className="text-gray-400" />
+                <span>Địa chỉ Email</span>
+              </span>
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600">
+                <ShieldCheck size={12} />
+                Đã xác thực
+              </span>
+            </label>
+            <input
+              type="email"
+              disabled
+              value={profile.data.email}
+              className="w-full rounded-2xl border border-gray-100 bg-gray-50/80 px-4 py-2.5 text-xs text-gray-500 cursor-not-allowed shadow-2xs"
+            />
+            <p className="text-[11px] text-gray-400">
+              Email đăng nhập chính thức, không thể thay đổi tại đây.
+            </p>
           </div>
         </div>
 
-        {/* Form Action Controls */}
+        {/* Action Buttons */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-5">
-          <div>
-            {isDirty && (
-              <span className="text-xs font-semibold text-amber-600 flex items-center gap-1.5">
-                <AlertCircle size={13} />
-                <span>Bạn có chỉnh sửa chưa lưu</span>
-              </span>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={!isDirty || update.isPending}
+            className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-5 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs"
+          >
+            <RotateCcw size={14} />
+            <span>Khôi phục</span>
+          </button>
 
-          <div className="flex items-center gap-2.5">
-            {isDirty && (
-              <button
-                type="button"
-                onClick={handleReset}
-                disabled={update.isPending}
-                className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 active:scale-95"
-              >
-                <RotateCcw size={13} />
-                <span>Hủy thay đổi</span>
-              </button>
-            )}
-
-            <button
-              type="submit"
-              disabled={!isDirty || update.isPending}
-              className="inline-flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-xs font-bold text-white shadow-xs shadow-brand/20 transition hover:bg-brand-dark active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Save size={14} />
-              <span>{update.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}</span>
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={!isDirty || update.isPending}
+            className="inline-flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-brand-dark transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save size={14} />
+            <span>{update.isPending ? 'Đang lưu...' : 'Lưu Thay Đổi'}</span>
+          </button>
         </div>
       </form>
     </div>

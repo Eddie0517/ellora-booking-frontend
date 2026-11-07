@@ -4,6 +4,9 @@ export interface RegistrationDto {
   address?: string | null
   city?: string | null
   district?: string | null
+  phone?: string | null
+  email?: string | null
+  description?: string | null
   status?: string | null
 }
 

@@ -8,7 +8,7 @@ export interface OwnerSummary {
   averageRating: number
 }
 export interface OwnerSalon { id: string; name: string; description: string; address: string; city: string; district: string; phone: string; email: string; latitude: number | null; longitude: number | null; logoUrl: string | null; imageUrls: string[]; status: string }
-export interface SaveSalon { name: string; description: string; address: string; city: string; district: string; phone: string; email: string; latitude?: number | null; longitude?: number | null }
+export interface SaveSalon { name: string; description: string; address: string; city: string; district: string; phone: string; email: string; logoUrl?: string | null; latitude?: number | null; longitude?: number | null }
 export interface SalonChange { id: string; salonId: string; salonName: string; status: string; kind: string; submittedAt: string }
 export interface OwnerService { categoryId: number | null; id: string; name: string; description: string; price: number; durationMinutes: number; active: boolean; imageUrl: string | null }
 export interface OwnerEmployee { id: string; fullName: string; phone: string; bio: string; avatarUrl: string | null; active: boolean }

@@ -4,6 +4,9 @@ export interface Registration {
   address: string
   city: string
   district: string
+  phone?: string
+  email?: string
+  description?: string
   status: string
 }
 export interface RegistrationDraft {
