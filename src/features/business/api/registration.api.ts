@@ -8,6 +8,9 @@ export const registrationApi = {
   async mine(): Promise<Registration | null> {
     try {
       const response = await api.get<RegistrationDto>(REGISTRATION_ENDPOINTS.mine)
+      if (!response.data || !response.data.id) {
+        return null
+      }
       return registrationMapper.toModel(response.data)
     } catch (error: unknown) {
       if (typeof error === 'object' && error !== null && 'response' in error) {

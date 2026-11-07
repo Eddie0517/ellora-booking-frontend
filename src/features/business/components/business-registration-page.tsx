@@ -98,6 +98,10 @@ export function BusinessRegistrationPage() {
     )
   }, [registration.data?.status, user?.role])
 
+  const hasExistingSalon = Boolean(
+    registration.data && (registration.data.id || registration.data.name || registration.data.status)
+  )
+
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setError('')
@@ -105,8 +109,10 @@ export function BusinessRegistrationPage() {
     try {
       await create.mutateAsync(draft)
       setSuccessMsg('Gửi hồ sơ đăng ký thành công! Đội ngũ quản trị viên Ellora đang xem xét hồ sơ của bạn.')
+      await registration.refetch()
     } catch (err: unknown) {
       setError(apiError(err) || 'Không gửi được đăng ký. Vui lòng kiểm tra lại thông tin và thử lại.')
+      void registration.refetch()
     }
   }
 
@@ -152,7 +158,23 @@ export function BusinessRegistrationPage() {
           <RefreshCw size={24} className="mx-auto animate-spin text-brand" />
           <p className="mt-3 text-xs text-gray-500">Đang kiểm tra hồ sơ đăng ký của bạn...</p>
         </div>
-      ) : registration.isSuccess && registration.data ? (
+      ) : registration.isError ? (
+        <div className="rounded-3xl border border-red-100 bg-white p-8 text-center shadow-sm">
+          <AlertCircle size={32} className="mx-auto text-red-500" />
+          <h2 className="mt-3 text-lg font-bold text-gray-900">Không thể kiểm tra trạng thái hồ sơ</h2>
+          <p className="mt-1 text-xs text-gray-500">
+            {apiError(registration.error) || 'Đã có lỗi xảy ra khi tải dữ liệu từ máy chủ.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => registration.refetch()}
+            className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-xs font-semibold text-white transition hover:bg-brand-dark"
+          >
+            <RefreshCw size={13} />
+            <span>Thử lại</span>
+          </button>
+        </div>
+      ) : hasExistingSalon && registration.data ? (
         /* Status Card */
         <section className="rounded-3xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm shadow-pink-950/5">
           {successMsg && (
