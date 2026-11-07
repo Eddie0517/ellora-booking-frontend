@@ -1,5 +1,5 @@
-import { useState, type FormEvent, type KeyboardEvent } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useState, useEffect, type FormEvent, type KeyboardEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   AlertCircle,
   Sparkles,
@@ -20,6 +20,7 @@ import {
 import { toast } from 'sonner'
 import { jwtAuth } from '../api/jwt'
 import { apiError } from '@/lib/axios'
+import { useAuthStore } from '@/store/auth.store'
 
 export function LoginPage() {
   const [email, setEmail] = useState(() => {
@@ -44,8 +45,19 @@ export function LoginPage() {
   const [showDemoAccounts, setShowDemoAccounts] = useState(false)
 
   const navigate = useNavigate()
-  const location = useLocation()
-  const redirectTo = (location.state as { from?: string } | null)?.from
+
+  const currentUser = useAuthStore((state) => state.user)
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.role === 'ADMIN') {
+        navigate('/admin/dashboard', { replace: true })
+      } else if (currentUser.role === 'SALON_OWNER') {
+        navigate('/owner/dashboard', { replace: true })
+      } else {
+        navigate('/', { replace: true })
+      }
+    }
+  }, [currentUser, navigate])
 
   // Check Caps Lock key status
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -82,7 +94,7 @@ export function LoginPage() {
           ? '/admin/dashboard'
           : user.role === 'SALON_OWNER'
           ? '/owner/dashboard'
-          : redirectTo ?? '/'
+          : '/'
       )
     } catch (err) {
       const msg = apiError(err)
@@ -95,7 +107,7 @@ export function LoginPage() {
     }
   }
 
-  const handleQuickFill = (demoEmail: string, demoPass: string = 'Password123!') => {
+  const handleQuickFill = (demoEmail: string, demoPass: string = '123456') => {
     setEmail(demoEmail)
     setPassword(demoPass)
     setError('')
@@ -419,21 +431,21 @@ export function LoginPage() {
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
-                    onClick={() => handleQuickFill('customer@ellora.vn')}
+                    onClick={() => handleQuickFill('customer@ellora.vn', '123456')}
                     className="rounded-xl border border-pink-200 bg-white py-1.5 px-2 text-[11px] font-medium text-gray-700 hover:border-brand hover:text-brand transition-colors text-center shadow-2xs"
                   >
                     Khách hàng
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleQuickFill('owner@ellora.vn')}
+                    onClick={() => handleQuickFill('owner@ellora.vn', '123456')}
                     className="rounded-xl border border-pink-200 bg-white py-1.5 px-2 text-[11px] font-medium text-gray-700 hover:border-brand hover:text-brand transition-colors text-center shadow-2xs"
                   >
                     Chủ salon
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleQuickFill('admin@ellora.vn')}
+                    onClick={() => handleQuickFill('admin@ellora.com', '123456')}
                     className="rounded-xl border border-pink-200 bg-white py-1.5 px-2 text-[11px] font-medium text-gray-700 hover:border-brand hover:text-brand transition-colors text-center shadow-2xs"
                   >
                     Quản trị viên
