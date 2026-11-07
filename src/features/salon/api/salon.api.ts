@@ -41,8 +41,9 @@ export const salonApi = {
     return salonMapper.toModel(response.data)
   },
   async services(id: string): Promise<SalonService[]> {
-    const response = await api.get<ServiceDto[]>(SALON_ENDPOINTS.services(id))
-    return (response.data ?? []).map(salonMapper.toServiceModel)
+    const response = await api.get<ServiceDto[] | { data: ServiceDto[] }>(SALON_ENDPOINTS.services(id))
+    const list: ServiceDto[] = Array.isArray(response.data) ? response.data : ((response.data as any)?.data ?? [])
+    return list.map((item: ServiceDto) => salonMapper.toServiceModel(item))
   },
   async employees(id: string): Promise<SalonEmployee[]> {
     const response = await api.get<EmployeeDto[]>(SALON_ENDPOINTS.employees(id))
