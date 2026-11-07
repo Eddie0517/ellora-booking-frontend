@@ -27,6 +27,9 @@ const links = [
   { to: '/owner/services', label: 'Dịch vụ & Bảng giá', Icon: Scissors },
   { to: '/owner/staff', label: 'Kỹ thuật viên', Icon: Users },
   { to: '/owner/reviews', label: 'Đánh giá khách', Icon: MessageSquare },
+  { to: '/owner/photos', label: 'Hình ảnh tiệm', Icon: Scissors },
+  { to: '/owner/analytics', label: 'Báo cáo doanh thu', Icon: LayoutDashboard },
+  { to: '/owner/billing', label: 'Phí sàn & Thanh toán', Icon: BadgeDollarSign },
   { to: '/owner/subscription', label: 'Gói dịch vụ', Icon: BadgeDollarSign },
 ]
 

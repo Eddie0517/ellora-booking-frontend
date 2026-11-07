@@ -24,6 +24,9 @@ const links = [
   { to: '/admin/salon-changes', label: 'Duyệt cập nhật', Icon: RefreshCw },
   { to: '/admin/disputes', label: 'Phản ánh lịch hẹn', Icon: AlertCircle },
   { to: '/admin/support', label: 'Thông tin hỗ trợ', Icon: HelpCircle },
+  { to: '/admin/content', label: 'Kiểm duyệt nội dung', Icon: CheckSquare },
+  { to: '/admin/billing', label: 'Đối soát & Phí sàn', Icon: LayoutDashboard },
+  { to: '/admin/subscriptions', label: 'Gói dịch vụ', Icon: Users },
 ]
 
 export function AdminLayout() {
