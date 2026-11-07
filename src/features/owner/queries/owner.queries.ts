@@ -49,6 +49,8 @@ export function useOwnerPhotoMutations() {
     remove: useMutation({ mutationFn: ({ kind, id }: { kind: 'cover' | 'services' | 'employees'; id: string }) => ownerApi.removePhoto(kind, id), onSuccess: refresh }),
     uploadGallery: useMutation({ mutationFn: ({ id, files }: { id: string; files: File[] }) => ownerApi.uploadGallery(id, files), onSuccess: refresh }),
     removeGallery: useMutation({ mutationFn: ownerApi.removeGallery, onSuccess: refresh }),
+    uploadShowcaseSlot: useMutation({ mutationFn: ({ slotIndex, file }: { slotIndex: number; file: File }) => ownerApi.uploadShowcaseSlot(slotIndex, file), onSuccess: refresh }),
+    removeShowcaseSlot: useMutation({ mutationFn: (slotIndex: number) => ownerApi.removeShowcaseSlot(slotIndex), onSuccess: refresh }),
   }
 }
 export const useReplyOwnerReview = () => {

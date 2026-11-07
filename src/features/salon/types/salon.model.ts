@@ -6,6 +6,8 @@ export interface Salon {
   city: string
   district: string
   images: string[]
+  logoUrl: string | null
+  showcaseImages: string[]
   rating: number
   reviewCount: number
   coordinates: { lat: number; lng: number } | null

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useRef, useState, type FormEvent } from 'react'
 import {
   Building2,
@@ -160,6 +161,18 @@ export function OwnerProfilePage() {
               Bấm vào biểu tượng máy ảnh trên hình để chọn và tải lên ảnh đại diện / logo mới của salon.
             </p>
           </div>
+        </div>
+        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <p className="text-xs text-gray-500">
+            Muốn tùy biến 5 ô ảnh lớn trên khung Bento Showcase xuất hiện trên trang tiệm?
+          </p>
+          <Link
+            to="/owner/photos"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-pink-200 bg-rose-50/70 px-3.5 py-1.5 text-xs font-bold text-brand hover:bg-rose-100/70 transition shrink-0"
+          >
+            <span>Thiết kế khung ảnh Bento (5 vị trí)</span>
+            <span>&rarr;</span>
+          </Link>
         </div>
       </div>
 

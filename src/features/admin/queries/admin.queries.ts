@@ -9,7 +9,7 @@ export const ADMIN_QUERY_KEYS = {
 }
 export const ADMIN_SALON_KEYS = {
   all: ['admin', 'salons'] as const,
-  pending: (page: number) => ['admin', 'salons', 'pending', page] as const,
+  pending: (page: number, status?: string) => ['admin', 'salons', 'pending', page, status || 'ALL'] as const,
   detail: (id: string) => ['admin', 'salons', id] as const,
 }
 export const ADMIN_SUPPORT_KEYS = { all: ['admin', 'support'] as const }
@@ -44,8 +44,8 @@ export const useLockAdminUser = () => {
   })
 }
 
-export const usePendingSalons = (page: number) =>
-  useQuery({ queryKey: ADMIN_SALON_KEYS.pending(page), queryFn: () => adminApi.pendingSalons(page) })
+export const usePendingSalons = (page: number, status?: string) =>
+  useQuery({ queryKey: ADMIN_SALON_KEYS.pending(page, status), queryFn: () => adminApi.pendingSalons(page, status) })
 
 export const usePendingSalon = (id: string) =>
   useQuery({ queryKey: ADMIN_SALON_KEYS.detail(id), queryFn: () => adminApi.salon(id), enabled: !!id })

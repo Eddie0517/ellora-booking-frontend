@@ -64,9 +64,9 @@ export const adminApi = {
     return adminUserMapper.toModel(unwrap<AdminUserDto>(response.data))
   },
 
-  async pendingSalons(page: number): Promise<PageModel<PendingSalon>> {
+  async pendingSalons(page: number, status?: string): Promise<PageModel<PendingSalon>> {
     const response = await api.get<any>(ADMIN_ENDPOINTS.pendingSalons, {
-      params: { page, size: 20 },
+      params: { page, size: 20, ...(status ? { status } : {}) },
     })
     return pendingSalonMapper.toPaginationModel(unwrap(response.data))
   },

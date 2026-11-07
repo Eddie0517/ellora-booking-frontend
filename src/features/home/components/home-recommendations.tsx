@@ -22,7 +22,7 @@ const curatedSalons: Salon[] = [
     reviewCount: 320,
     coordinates: { lat: 10.7769, lng: 106.7009 },
     distanceKm: 0.8,
-    subscriptionTier: 'VIP',
+    logoUrl: null, showcaseImages: [], subscriptionTier: 'VIP',
     subscriptionBadge: '✦ Salon VIP',
   },
   {
@@ -39,7 +39,7 @@ const curatedSalons: Salon[] = [
     reviewCount: 184,
     coordinates: { lat: 10.7788, lng: 106.6912 },
     distanceKm: 1.4,
-    subscriptionTier: 'VIP',
+    logoUrl: null, showcaseImages: [], subscriptionTier: 'VIP',
     subscriptionBadge: '✦ Đối tác hàng đầu',
   },
   {
@@ -56,7 +56,7 @@ const curatedSalons: Salon[] = [
     reviewCount: 215,
     coordinates: { lat: 10.7932, lng: 106.7321 },
     distanceKm: 3.2,
-    subscriptionTier: 'STANDARD',
+    logoUrl: null, showcaseImages: [], subscriptionTier: 'STANDARD',
     subscriptionBadge: 'Yêu thích nhất',
   },
   {
@@ -73,7 +73,7 @@ const curatedSalons: Salon[] = [
     reviewCount: 142,
     coordinates: { lat: 10.7891, lng: 106.6924 },
     distanceKm: 2.1,
-    subscriptionTier: 'STANDARD',
+    logoUrl: null, showcaseImages: [], subscriptionTier: 'STANDARD',
     subscriptionBadge: 'Đặt nhiều',
   },
 ]

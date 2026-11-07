@@ -195,6 +195,14 @@ function ReviewSection({
   )
 }
 
+const DEFAULT_BENTO_PLACEHOLDERS = [
+  'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=800&q=80',
+]
+
 export function SalonDetailPage() {
   const { id = '' } = useParams()
   const salon = useSalon(id)
@@ -231,11 +239,7 @@ export function SalonDetailPage() {
     ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
     : null
 
-  const images = item.images.length > 0
-    ? item.images
-    : ['https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=1000&q=80']
-
-  return (
+    return (
     <div className="bg-white pb-24 pt-6">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb Navigation */}
@@ -267,9 +271,9 @@ export function SalonDetailPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-2 h-[340px] sm:h-[420px] md:h-[480px]">
             {/* Main Primary Image */}
-            <div className="md:col-span-2 md:row-span-2 h-full overflow-hidden">
+            <div className="md:col-span-2 md:row-span-2 h-full overflow-hidden bg-gray-100">
               <img
-                src={images[0]}
+                src={(item.showcaseImages && item.showcaseImages[0]) || item.images[0] || DEFAULT_BENTO_PLACEHOLDERS[0]}
                 alt={`Không gian chính tại ${item.name}`}
                 className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
               />
@@ -277,9 +281,9 @@ export function SalonDetailPage() {
 
             {/* Supporting Images */}
             {[1, 2, 3, 4].map((idx) => {
-              const imgUrl = images[idx] || images[0]
+              const imgUrl = (item.showcaseImages && item.showcaseImages[idx]) || DEFAULT_BENTO_PLACEHOLDERS[idx]
               return (
-                <div key={idx} className="hidden md:block h-full overflow-hidden">
+                <div key={idx} className="hidden md:block h-full overflow-hidden bg-gray-100">
                   <img
                     src={imgUrl}
                     alt={`${item.name} - Ảnh ${idx + 1}`}
@@ -297,27 +301,42 @@ export function SalonDetailPage() {
           <div className="space-y-10 lg:col-span-8">
             {/* Salon Header Info */}
             <div>
-              <div className="flex flex-wrap items-center gap-2.5">
-                {item.subscriptionBadge && (
-                  <span className="rounded-full border border-pink-200 bg-rose-50 px-3 py-1 text-xs font-bold text-brand">
-                    {item.subscriptionBadge}
-                  </span>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                {item.logoUrl ? (
+                  <img
+                    src={item.logoUrl}
+                    alt={item.name}
+                    className="size-16 sm:size-20 rounded-2xl object-cover border-2 border-white shadow-md ring-1 ring-slate-200/80 shrink-0"
+                  />
+                ) : (
+                  <div className="size-16 sm:size-20 rounded-2xl bg-rose-50 border border-pink-200 flex items-center justify-center text-brand font-bold text-2xl shrink-0">
+                    {item.name.charAt(0)}
+                  </div>
                 )}
-                <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
-                  <Star size={13} className="fill-amber-400 text-amber-400" />
-                  <span>{item.rating > 0 ? item.rating.toFixed(1) : '5.0'}</span>
-                </span>
-                <a
-                  href="#reviews"
-                  className="text-xs text-gray-500 underline decoration-gray-300 hover:text-brand"
-                >
-                  ({item.reviewCount} đánh giá)
-                </a>
-              </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {item.subscriptionBadge && (
+                      <span className="rounded-full border border-pink-200 bg-rose-50 px-3 py-1 text-xs font-bold text-brand">
+                        {item.subscriptionBadge}
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+                      <Star size={13} className="fill-amber-400 text-amber-400" />
+                      <span>{item.rating > 0 ? item.rating.toFixed(1) : '5.0'}</span>
+                    </span>
+                    <a
+                      href="#reviews"
+                      className="text-xs text-gray-500 underline decoration-gray-300 hover:text-brand"
+                    >
+                      ({item.reviewCount} đánh giá)
+                    </a>
+                  </div>
 
-              <h1 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                {item.name}
-              </h1>
+                  <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+                    {item.name}
+                  </h1>
+                </div>
+              </div>
 
               <p className="mt-2 flex items-center gap-1.5 text-sm text-gray-600">
                 <MapPin size={16} className="shrink-0 text-brand" />

@@ -8,7 +8,10 @@ export class SalonMapper extends BaseMapper<SalonDto, Salon> {
   toModel(dto: SalonDto | null | undefined): Salon {
     const lat = safeNumber(pickField(dto, ['latitude']), NaN)
     const lng = safeNumber(pickField(dto, ['longitude']), NaN)
-    const images = [safeString(pickField(dto, ['logoUrl'])), ...safeArray<string>(pickField(dto, ['imageUrls']))].filter(Boolean)
+    const logoUrl = safeString(pickField(dto, ['logoUrl'])) || null
+    const showcaseImages = safeArray<string>(pickField(dto, ['imageUrls'])).map((u) => safeString(u))
+    const validImages = showcaseImages.filter(Boolean)
+    const images = validImages.length ? validImages : (logoUrl ? [logoUrl] : ['/salon-placeholder.svg'])
     const tier = safeString(pickField(dto, ['subscriptionTier']))
     const subscriptionTier = tier === 'VIP' || tier === 'STANDARD' ? tier : null
     return {
@@ -18,6 +21,8 @@ export class SalonMapper extends BaseMapper<SalonDto, Salon> {
       address: safeString(pickField(dto, ['address'])),
       city: safeString(pickField(dto, ['city'])),
       district: safeString(pickField(dto, ['district'])),
+      logoUrl,
+      showcaseImages,
       images: images.length ? [...new Set(images)] : ['/salon-placeholder.svg'],
       rating: safeNumber(pickField(dto, ['averageRating'])),
       reviewCount: safeNumber(pickField(dto, ['totalReviews'])),

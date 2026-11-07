@@ -18,4 +18,5 @@ export const OWNER_ENDPOINTS = {
   photo: (kind: string, id: string) => `/owner/photos/${kind}/${encodeURIComponent(id)}`,
   gallery: '/owner/photos/gallery',
   galleryBatch: (id: string) => `/owner/photos/gallery/${encodeURIComponent(id)}/batch`,
+  showcaseSlot: (slotIndex: number) => `/owner/photos/showcase/${slotIndex}`,
 } as const

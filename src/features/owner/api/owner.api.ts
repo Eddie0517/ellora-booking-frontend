@@ -244,4 +244,16 @@ export const ownerApi = {
   async removeGallery(url: string): Promise<void> {
     await api.delete(OWNER_ENDPOINTS.gallery, { params: { url } })
   },
+
+  async uploadShowcaseSlot(slotIndex: number, file: File): Promise<string[]> {
+    const form = new FormData()
+    form.append('file', file)
+    const response = await api.post<APIResponse<string[]> | string[]>(OWNER_ENDPOINTS.showcaseSlot(slotIndex), form)
+    return unwrap<string[]>(response.data)
+  },
+
+  async removeShowcaseSlot(slotIndex: number): Promise<string[]> {
+    const response = await api.delete<APIResponse<string[]> | string[]>(OWNER_ENDPOINTS.showcaseSlot(slotIndex))
+    return unwrap<string[]>(response.data)
+  },
 }
