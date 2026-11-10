@@ -2,16 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import {
   MapPin,
-  Navigation,
   Check,
-  Link2,
+  Search,
   Sparkles,
   RefreshCw,
   CheckCircle2,
   AlertCircle,
   X,
 } from 'lucide-react'
-import { ownerApi } from '../api/owner.api'
+import { placeSearchService, type PlaceSuggestion } from '@/features/salon/services/place-search.service'
 
 interface SalonCoordinates {
   lat: number
@@ -58,45 +57,6 @@ function isValidCoords(coords: SalonCoordinates | null | undefined): coords is S
   )
 }
 
-function extractCoordinatesLocally(input: string): SalonCoordinates | null {
-  if (!input || typeof input !== 'string') return null
-  const str = input.trim()
-
-  // 1. !3d<lat>!4d<lng> (Google Maps place exact pin)
-  const placeMatch = str.match(/!3d(-?\d+(?:\.\d+)?)[^!]*!4d(-?\d+(?:\.\d+)?)/)
-  if (placeMatch) {
-    const lat = Number(Number(placeMatch[1]).toFixed(6))
-    const lng = Number(Number(placeMatch[2]).toFixed(6))
-    if (isValidCoords({ lat, lng })) return { lat, lng }
-  }
-
-  // 2. @<lat>,<lng> (Camera center view coordinates)
-  const atMatch = str.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/)
-  if (atMatch) {
-    const lat = Number(Number(atMatch[1]).toFixed(6))
-    const lng = Number(Number(atMatch[2]).toFixed(6))
-    if (isValidCoords({ lat, lng })) return { lat, lng }
-  }
-
-  // 3. query/destination/ll/q parameter
-  const queryMatch = str.match(/[?&](?:q|query|ll|destination|center)=(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)/i)
-  if (queryMatch) {
-    const lat = Number(Number(queryMatch[1]).toFixed(6))
-    const lng = Number(Number(queryMatch[2]).toFixed(6))
-    if (isValidCoords({ lat, lng })) return { lat, lng }
-  }
-
-  // 4. Raw coordinates pasted e.g. "10.776042, 106.698747" or "10.776042 106.698747"
-  const rawMatch = str.match(/^\s*(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)\s*$/)
-  if (rawMatch) {
-    const lat = Number(Number(rawMatch[1]).toFixed(6))
-    const lng = Number(Number(rawMatch[2]).toFixed(6))
-    if (isValidCoords({ lat, lng })) return { lat, lng }
-  }
-
-  return null
-}
-
 export function SalonLocationPicker({
   value,
   onChange,
@@ -106,31 +66,151 @@ export function SalonLocationPicker({
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const markerRef = useRef<L.Marker | null>(null)
+  const searchContainerRef = useRef<HTMLDivElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
-  const [latInput, setLatInput] = useState(value ? String(value.lat) : '')
-  const [lngInput, setLngInput] = useState(value ? String(value.lng) : '')
-  const [inputError, setInputError] = useState('')
+  // Search & Google Maps auto-locate states
+  const [searchInput, setSearchInput] = useState('')
+  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [statusError, setStatusError] = useState('')
+  const [statusSuccess, setStatusSuccess] = useState('')
 
-  // Google Maps URL Auto Extract states
-  const [mapsUrlInput, setMapsUrlInput] = useState('')
-  const [isExtracting, setIsExtracting] = useState(false)
-  const [extractError, setExtractError] = useState('')
-  const [extractSuccess, setExtractSuccess] = useState('')
-
-  // Sync inputs when external value changes
+  // Close dropdown on click outside
   useEffect(() => {
-    if (value && isValidCoords(value)) {
-      setLatInput(String(value.lat))
-      setLngInput(String(value.lng))
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false)
+      }
     }
-  }, [value?.lat, value?.lng])
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-  // Initialize and update Leaflet Map
+  // Debounced search for suggestions when user types in search input
+  useEffect(() => {
+    if (!searchInput.trim() || searchInput.trim().length < 2) {
+      setSuggestions([])
+      setIsDropdownOpen(false)
+      return
+    }
+
+    // If it's a URL or coordinate format, don't spam geocoding API on every letter
+    const isUrlOrCoord =
+      searchInput.includes('http') ||
+      searchInput.includes('maps') ||
+      /^\s*-?\d+\.?\d*\s*,\s*-?\d+\.?\d*/.test(searchInput)
+
+    if (isUrlOrCoord) {
+      return
+    }
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
+    setIsSearching(true)
+    setStatusError('')
+
+    const timer = setTimeout(async () => {
+      try {
+        const results = await placeSearchService.search(searchInput, controller.signal)
+        setSuggestions(results)
+        setIsDropdownOpen(results.length > 0)
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') {
+          console.error(err)
+        }
+      } finally {
+        setIsSearching(false)
+      }
+    }, 350)
+
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [searchInput])
+
+  // Helper to place marker & fly map to coordinates
+  const applyCoordinates = (coords: SalonCoordinates, successMessage?: string) => {
+    onChange(coords)
+    if (successMessage) {
+      setStatusSuccess(successMessage)
+      setStatusError('')
+    }
+
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([coords.lat, coords.lng], 17, { duration: 1.2 })
+
+      if (markerRef.current) {
+        markerRef.current.setLatLng([coords.lat, coords.lng])
+      } else {
+        const icon = createGooglePinIcon()
+        const marker = L.marker([coords.lat, coords.lng], {
+          icon,
+          draggable: !disabled,
+          title: 'Vị trí salon',
+        }).addTo(mapInstanceRef.current)
+        markerRef.current = marker
+
+        marker.on('dragend', () => {
+          const pos = marker.getLatLng()
+          const dragged = {
+            lat: Number(pos.lat.toFixed(6)),
+            lng: Number(pos.lng.toFixed(6)),
+          }
+          setStatusSuccess(`✓ Đã kéo ghim tới vị trí: ${dragged.lat}, ${dragged.lng}`)
+          onChange(dragged)
+        })
+      }
+    }
+  }
+
+  // Handle selecting a place from dropdown
+  const handleSelectPlace = (place: PlaceSuggestion) => {
+    applyCoordinates(
+      { lat: place.lat, lng: place.lng },
+      `✓ Đã định vị thành công: ${place.name} (${place.lat}, ${place.lng})`
+    )
+    setSearchInput(place.name)
+    setSuggestions([])
+    setIsDropdownOpen(false)
+  }
+
+  // Handle manual Enter / click "Tìm & Đánh dấu" button (handles place names, Google Maps URLs, or coordinates)
+  const handleSearchOrExtract = async () => {
+    if (disabled) return
+    const raw = searchInput.trim()
+    if (!raw) return
+
+    setIsSearching(true)
+    setStatusError('')
+    setStatusSuccess('')
+
+    try {
+      const results = await placeSearchService.search(raw)
+      if (results.length > 0) {
+        handleSelectPlace(results[0])
+      } else {
+        setStatusError('Không tìm thấy địa điểm hoặc tọa độ phù hợp. Hãy thử tên cụ thể hơn hoặc dán link Google Maps chi tiết.')
+      }
+    } catch (err: any) {
+      setStatusError(err?.message || 'Lỗi tìm kiếm vị trí. Vui lòng thử lại.')
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  // Initialize Leaflet Map
   useEffect(() => {
     if (!mapContainerRef.current) return
 
     const initialCenter: [number, number] =
-      value && isValidCoords(value) ? [value.lat, value.lng] : [10.776889, 106.700806] // Default Ho Chi Minh City
+      value && isValidCoords(value) ? [value.lat, value.lng] : [10.776889, 106.700806] // TP. Hồ Chí Minh
 
     const map = L.map(mapContainerRef.current, {
       center: initialCenter,
@@ -146,7 +226,6 @@ export function SalonLocationPicker({
 
     const icon = createGooglePinIcon()
 
-    // If initial coords exist, place marker
     if (value && isValidCoords(value)) {
       const marker = L.marker([value.lat, value.lng], {
         icon,
@@ -161,20 +240,19 @@ export function SalonLocationPicker({
           lat: Number(pos.lat.toFixed(6)),
           lng: Number(pos.lng.toFixed(6)),
         }
-        setLatInput(String(selected.lat))
-        setLngInput(String(selected.lng))
-        setInputError('')
+        setStatusSuccess(`✓ Đã kéo ghim tới vị trí: ${selected.lat}, ${selected.lng}`)
         onChange(selected)
       })
     }
 
-    // Map click handler to set marker
     if (!disabled) {
       map.on('click', (e: L.LeafletMouseEvent) => {
         const selected = {
           lat: Number(e.latlng.lat.toFixed(6)),
           lng: Number(e.latlng.lng.toFixed(6)),
         }
+        setStatusSuccess(`✓ Đã chạm chọn vị trí: ${selected.lat}, ${selected.lng}`)
+        onChange(selected)
 
         if (markerRef.current) {
           markerRef.current.setLatLng([selected.lat, selected.lng])
@@ -192,17 +270,10 @@ export function SalonLocationPicker({
               lat: Number(pos.lat.toFixed(6)),
               lng: Number(pos.lng.toFixed(6)),
             }
-            setLatInput(String(dragged.lat))
-            setLngInput(String(dragged.lng))
-            setInputError('')
+            setStatusSuccess(`✓ Đã kéo ghim tới vị trí: ${dragged.lat}, ${dragged.lng}`)
             onChange(dragged)
           })
         }
-
-        setLatInput(String(selected.lat))
-        setLngInput(String(selected.lng))
-        setInputError('')
-        onChange(selected)
       })
     }
 
@@ -218,7 +289,7 @@ export function SalonLocationPicker({
     }
   }, [disabled])
 
-  // Move marker when valid coordinates change programmatically
+  // Sync external changes
   useEffect(() => {
     if (!mapInstanceRef.current || !value || !isValidCoords(value)) return
     if (markerRef.current) {
@@ -226,118 +297,9 @@ export function SalonLocationPicker({
     }
   }, [value?.lat, value?.lng])
 
-  const handleApplyManualCoords = () => {
-    if (disabled) return
-    const lat = Number(latInput.trim())
-    const lng = Number(lngInput.trim())
-    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      setInputError('Tọa độ không hợp lệ. Vĩ độ từ -90 đến 90, Kinh độ từ -180 đến 180.')
-      return
-    }
-    setInputError('')
-    const selected = {
-      lat: Number(lat.toFixed(6)),
-      lng: Number(lng.toFixed(6)),
-    }
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView([selected.lat, selected.lng], 16)
-      if (markerRef.current) {
-        markerRef.current.setLatLng([selected.lat, selected.lng])
-      } else {
-        const icon = createGooglePinIcon()
-        const marker = L.marker([selected.lat, selected.lng], {
-          icon,
-          draggable: !disabled,
-          title: 'Vị trí salon',
-        }).addTo(mapInstanceRef.current)
-        markerRef.current = marker
-
-        marker.on('dragend', () => {
-          const pos = marker.getLatLng()
-          const dragged = {
-            lat: Number(pos.lat.toFixed(6)),
-            lng: Number(pos.lng.toFixed(6)),
-          }
-          setLatInput(String(dragged.lat))
-          setLngInput(String(dragged.lng))
-          setInputError('')
-          onChange(dragged)
-        })
-      }
-    }
-    onChange(selected)
-  }
-
-  const handleExtractFromUrl = async () => {
-    if (disabled) return
-    const raw = mapsUrlInput.trim()
-    if (!raw) return
-
-    setExtractError('')
-    setExtractSuccess('')
-    setIsExtracting(true)
-
-    try {
-      // Step 1: Client-side regex (instant 0ms)
-      let coords = extractCoordinatesLocally(raw)
-
-      // Step 2: If client-side couldn't parse (e.g. short link maps.app.goo.gl or goo.gl/maps)
-      if (!coords && (raw.startsWith('http://') || raw.startsWith('https://'))) {
-        const res = await ownerApi.resolveMapsUrl(raw)
-        if (res && Number.isFinite(res.latitude) && Number.isFinite(res.longitude)) {
-          coords = {
-            lat: Number(res.latitude.toFixed(6)),
-            lng: Number(res.longitude.toFixed(6)),
-          }
-        }
-      }
-
-      if (coords && isValidCoords(coords)) {
-        setLatInput(String(coords.lat))
-        setLngInput(String(coords.lng))
-        setInputError('')
-        onChange(coords)
-        setExtractSuccess(`✓ Đã định vị thành công: ${coords.lat}, ${coords.lng}`)
-
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo([coords.lat, coords.lng], 17, { duration: 1.2 })
-          if (markerRef.current) {
-            markerRef.current.setLatLng([coords.lat, coords.lng])
-          } else {
-            const icon = createGooglePinIcon()
-            const marker = L.marker([coords.lat, coords.lng], {
-              icon,
-              draggable: !disabled,
-              title: 'Vị trí salon',
-            }).addTo(mapInstanceRef.current)
-            markerRef.current = marker
-
-            marker.on('dragend', () => {
-              const pos = marker.getLatLng()
-              const dragged = {
-                lat: Number(pos.lat.toFixed(6)),
-                lng: Number(pos.lng.toFixed(6)),
-              }
-              setLatInput(String(dragged.lat))
-              setLngInput(String(dragged.lng))
-              setInputError('')
-              onChange(dragged)
-            })
-          }
-        }
-      } else {
-        setExtractError('Không tìm thấy tọa độ từ liên kết hoặc văn bản đã dán. Vui lòng kiểm tra lại link Google Maps.')
-      }
-    } catch (err: any) {
-      const msg = err?.response?.data?.detail || err?.message || 'Không thể phân tích liên kết Google Maps'
-      setExtractError(msg)
-    } finally {
-      setIsExtracting(false)
-    }
-  }
-
   return (
     <div className="space-y-3.5 rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <MapPin size={18} className="text-brand" />
@@ -359,157 +321,143 @@ export function SalonLocationPicker({
         </p>
       ) : (
         <p className="text-xs text-gray-500">
-          Chạm vào bản đồ, kéo ghim hoặc dán liên kết Google Maps của tiệm để hệ thống tự động đánh dấu vị trí.
+          Bạn có thể tìm kiếm tên địa điểm giống Google Maps, dán link Google Maps của tiệm hoặc kéo ghim trực tiếp trên bản đồ.
         </p>
       )}
 
-      {/* Auto Extract from Google Maps URL or Coordinates */}
+      {/* Place Search & Google Maps Link Autocomplete Box */}
       {!disabled && (
         <div className="rounded-xl border border-rose-100 bg-gradient-to-r from-rose-50/50 via-white to-pink-50/30 p-3 sm:p-4 space-y-2.5 shadow-2xs">
           <div className="flex flex-wrap items-center justify-between gap-1">
             <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-              <Link2 size={14} className="text-brand" />
-              <span>Tự động định vị từ link Google Maps</span>
+              <Search size={14} className="text-brand" />
+              <span>Tìm địa điểm hoặc dán link Google Maps</span>
             </span>
             <span className="text-[11px] text-gray-400">
-              Hỗ trợ link đầy đủ, link rút gọn (maps.app.goo.gl) hoặc tọa độ
+              Nhập tên tiệm/địa danh (VD: Đại học FPT) hoặc link Google Maps
             </span>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                value={mapsUrlInput}
-                onChange={(e) => {
-                  setMapsUrlInput(e.target.value)
-                  setExtractError('')
-                  setExtractSuccess('')
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    handleExtractFromUrl()
-                  }
-                }}
-                placeholder="Dán link Google Maps (VD: https://maps.app.goo.gl/... hoặc https://www.google.com/maps/place/...)"
-                className="w-full rounded-xl border border-rose-200 bg-white px-3.5 py-2 text-xs text-gray-900 placeholder:text-gray-400 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none shadow-2xs"
-              />
-              {mapsUrlInput && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMapsUrlInput('')
-                    setExtractError('')
-                    setExtractSuccess('')
+          <div ref={searchContainerRef} className="relative">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => {
+                    setSearchInput(e.target.value)
+                    setStatusError('')
+                    setStatusSuccess('')
                   }}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  title="Xóa đường dẫn"
-                >
-                  <X size={14} />
-                </button>
-              )}
+                  onFocus={() => {
+                    if (suggestions.length > 0) setIsDropdownOpen(true)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleSearchOrExtract()
+                    }
+                  }}
+                  placeholder="Nhập tên địa điểm (VD: Trường Đại học FPT) hoặc dán link Google Maps..."
+                  className="w-full rounded-xl border border-rose-200 bg-white pl-9 pr-9 py-2 text-xs text-gray-900 placeholder:text-gray-400 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none shadow-2xs"
+                />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchInput('')
+                      setSuggestions([])
+                      setIsDropdownOpen(false)
+                      setStatusError('')
+                      setStatusSuccess('')
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    title="Xóa nội dung"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="button"
+                disabled={!searchInput.trim() || isSearching}
+                onClick={handleSearchOrExtract}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-brand-dark transition-all disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]"
+              >
+                {isSearching ? (
+                  <>
+                    <RefreshCw size={13} className="animate-spin" />
+                    <span>Đang tìm...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={13} />
+                    <span>Tìm & Đánh dấu</span>
+                  </>
+                )}
+              </button>
             </div>
 
-            <button
-              type="button"
-              disabled={!mapsUrlInput.trim() || isExtracting}
-              onClick={handleExtractFromUrl}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-brand-dark transition-all disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]"
-            >
-              {isExtracting ? (
-                <>
-                  <RefreshCw size={13} className="animate-spin" />
-                  <span>Đang trích xuất...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles size={13} />
-                  <span>Trích xuất & Đánh dấu</span>
-                </>
-              )}
-            </button>
+            {/* Suggestions Dropdown */}
+            {isDropdownOpen && suggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-gray-100 bg-white p-1.5 shadow-xl">
+                <div className="px-2 py-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                  Địa điểm gợi ý
+                </div>
+                {suggestions.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleSelectPlace(item)}
+                    className="flex w-full items-start gap-2.5 rounded-lg p-2 text-left transition hover:bg-rose-50/80"
+                  >
+                    <MapPin size={15} className="mt-0.5 shrink-0 text-brand" />
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-xs font-bold text-gray-900">{item.name}</p>
+                      <p className="truncate text-[11px] text-gray-500">{item.address}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {extractSuccess && (
+          {statusSuccess && (
             <p className="text-xs font-medium text-emerald-600 flex items-center gap-1.5 animate-in fade-in duration-200">
               <CheckCircle2 size={14} className="shrink-0" />
-              <span>{extractSuccess}</span>
+              <span>{statusSuccess}</span>
             </p>
           )}
-          {extractError && (
+          {statusError && (
             <p className="text-xs font-medium text-rose-600 flex items-center gap-1.5 animate-in fade-in duration-200">
               <AlertCircle size={14} className="shrink-0" />
-              <span>{extractError}</span>
+              <span>{statusError}</span>
             </p>
           )}
         </div>
       )}
 
-      {/* Map Container */}
+      {/* Map Container with Google Maps Red Pin */}
       <div className="relative h-64 sm:h-72 w-full overflow-hidden rounded-xl border border-gray-200 shadow-2xs bg-rose-50/20">
         <div ref={mapContainerRef} className="h-full w-full z-0" />
       </div>
 
-      <p className="text-[11px] text-gray-400">
-        Bản đồ OpenStreetMap &copy;{' '}
-        <a
-          href="https://www.openstreetmap.org/copyright"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline hover:text-gray-600"
-        >
-          OpenStreetMap contributors
-        </a>
-      </p>
-
-      {/* Manual Input Fallback */}
-      {!disabled && (
-        <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3 sm:p-4 space-y-2.5">
-          <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-            <Navigation size={13} className="text-gray-400" />
-            <span>Hoặc nhập tọa độ thủ công:</span>
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div>
-              <label htmlFor="salon-lat" className="block text-[11px] font-medium text-gray-500 mb-1">
-                Vĩ độ (Latitude)
-              </label>
-              <input
-                id="salon-lat"
-                type="text"
-                inputMode="decimal"
-                value={latInput}
-                onChange={(e) => setLatInput(e.target.value)}
-                placeholder="Ví dụ: 10.776889"
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-900 focus:border-brand focus:outline-none"
-              />
-            </div>
-            <div>
-              <label htmlFor="salon-lng" className="block text-[11px] font-medium text-gray-500 mb-1">
-                Kinh độ (Longitude)
-              </label>
-              <input
-                id="salon-lng"
-                type="text"
-                inputMode="decimal"
-                value={lngInput}
-                onChange={(e) => setLngInput(e.target.value)}
-                placeholder="Ví dụ: 106.700806"
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-900 focus:border-brand focus:outline-none"
-              />
-            </div>
-          </div>
-          {inputError && <p className="text-xs text-red-600">{inputError}</p>}
-          <button
-            type="button"
-            onClick={handleApplyManualCoords}
-            className="rounded-lg bg-gray-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-gray-800 transition-colors"
+      <div className="flex items-center justify-between text-[11px] text-gray-400">
+        <span>Kéo ghim hoặc chạm vào bản đồ để tinh chỉnh vị trí chính xác.</span>
+        <span>
+          Bản đồ OpenStreetMap &copy;{' '}
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-gray-600"
           >
-            Áp dụng tọa độ thủ công
-          </button>
-        </div>
-      )}
+            OpenStreetMap contributors
+          </a>
+        </span>
+      </div>
     </div>
   )
 }

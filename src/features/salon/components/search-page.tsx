@@ -3,7 +3,9 @@ import { Navigate, useSearchParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, SlidersHorizontal, SearchX, Sparkles, Map as MapIcon, LayoutGrid } from 'lucide-react'
 import { SalonCard } from './salon-card'
 import { SalonSearchForm } from './salon-search-form'
-import { SalonSearchMap } from './salon-search-map'
+import { SalonSearchMap, type UserLocation } from './salon-search-map'
+import { UserLocationSearchBox } from './user-location-search-box'
+import type { Salon } from '../types/salon.model'
 import { useSalons } from '../queries/salon.queries'
 import { useAuthStore } from '@/store/auth.store'
 
@@ -35,6 +37,9 @@ export function SearchPage() {
   const radiusKm = params.get('radiusKm') ? Number(params.get('radiusKm')) : undefined
   const [activeFilter, setActiveFilter] = useState(keyword)
   const [showMap, setShowMap] = useState(true)
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [nearestSalon, setNearestSalon] = useState<Salon | null>(null)
+  const [nearestDistanceKm, setNearestDistanceKm] = useState<number | null>(null)
 
   const salons = useSalons({
     keyword,
@@ -240,12 +245,23 @@ export function SearchPage() {
             )}
           </div>
 
-          {/* Right Column: Compact Sticky Overview Map */}
+          {/* Right Column: Compact Sticky Overview Map & User Location Search */}
           {showMap && (
-            <div className="order-first lg:order-last lg:col-span-5 xl:col-span-5 lg:sticky lg:top-24">
+            <div className="order-first lg:order-last lg:col-span-5 xl:col-span-5 lg:sticky lg:top-24 space-y-3">
               <SalonSearchMap
                 salons={salons.data?.content ?? []}
-                heightClassName="h-[380px] lg:h-[calc(100vh-140px)] lg:max-h-[620px]"
+                userLocation={userLocation}
+                onNearestSalonChange={(salon, dist) => {
+                  setNearestSalon(salon)
+                  setNearestDistanceKm(dist)
+                }}
+                heightClassName="h-[360px] lg:h-[calc(100vh-270px)] lg:max-h-[500px]"
+              />
+              <UserLocationSearchBox
+                userLocation={userLocation}
+                onLocationSelect={(loc) => setUserLocation(loc)}
+                nearestSalon={nearestSalon}
+                nearestDistanceKm={nearestDistanceKm}
               />
             </div>
           )}

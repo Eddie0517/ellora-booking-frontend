@@ -1,15 +1,30 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
-import { MapPin, Navigation, Info } from 'lucide-react'
+import { MapPin, Navigation, Info, User } from 'lucide-react'
 import type { Salon } from '../types/salon.model'
+import { calculateDistanceKm } from '../services/place-search.service'
+
+export interface UserLocation {
+  lat: number
+  lng: number
+  label?: string
+}
 
 interface SalonSearchMapProps {
   salons: Salon[]
+  userLocation?: UserLocation | null
   className?: string
   heightClassName?: string
+  onNearestSalonChange?: (salon: Salon | null, distanceKm: number | null) => void
 }
 
-export function SalonSearchMap({ salons, className = '', heightClassName = 'h-[500px]' }: SalonSearchMapProps) {
+export function SalonSearchMap({
+  salons,
+  userLocation,
+  className = '',
+  heightClassName = 'h-[500px]',
+  onNearestSalonChange,
+}: SalonSearchMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const [error, setError] = useState(false)
@@ -27,6 +42,29 @@ export function SalonSearchMap({ salons, className = '', heightClassName = 'h-[5
 
   const handleRecenter = () => {
     if (!mapInstanceRef.current) return
+
+    if (userLocation && Number.isFinite(userLocation.lat) && Number.isFinite(userLocation.lng)) {
+      if (points.length > 0) {
+        let nearest = points[0]
+        let minD = calculateDistanceKm(userLocation.lat, userLocation.lng, points[0].coordinates!.lat, points[0].coordinates!.lng)
+        for (let i = 1; i < points.length; i++) {
+          const d = calculateDistanceKm(userLocation.lat, userLocation.lng, points[i].coordinates!.lat, points[i].coordinates!.lng)
+          if (d < minD) {
+            minD = d
+            nearest = points[i]
+          }
+        }
+        const targetBounds: [number, number][] = [
+          [userLocation.lat, userLocation.lng],
+          [nearest.coordinates!.lat, nearest.coordinates!.lng],
+        ]
+        mapInstanceRef.current.fitBounds(L.latLngBounds(targetBounds), { padding: [70, 70], maxZoom: 16 })
+      } else {
+        mapInstanceRef.current.setView([userLocation.lat, userLocation.lng], 15)
+      }
+      return
+    }
+
     if (points.length === 1) {
       mapInstanceRef.current.setView([points[0].coordinates!.lat, points[0].coordinates!.lng], 16)
     } else if (points.length > 1) {
@@ -41,14 +79,15 @@ export function SalonSearchMap({ salons, className = '', heightClassName = 'h-[5
     if (!mapContainerRef.current) return
 
     try {
-      const defaultCenter: [number, number] =
-        points.length > 0
-          ? [points[0].coordinates!.lat, points[0].coordinates!.lng]
-          : [10.776889, 106.700806] // Trung tâm TP. Hồ Chí Minh
+      const defaultCenter: [number, number] = userLocation
+        ? [userLocation.lat, userLocation.lng]
+        : points.length > 0
+        ? [points[0].coordinates!.lat, points[0].coordinates!.lng]
+        : [10.776889, 106.700806] // Trung tâm TP. Hồ Chí Minh
 
       const map = L.map(mapContainerRef.current, {
         center: defaultCenter,
-        zoom: points.length > 0 ? 15 : 13,
+        zoom: userLocation || points.length > 0 ? 15 : 13,
         scrollWheelZoom: false,
       })
       mapInstanceRef.current = map
@@ -62,6 +101,7 @@ export function SalonSearchMap({ salons, className = '', heightClassName = 'h-[5
 
       const bounds: [number, number][] = []
 
+      // 1. Render all salons with Pink/Rose Floating Bubble Marker
       points.forEach((salon) => {
         const pt = salon.coordinates!
         bounds.push([pt.lat, pt.lng])
@@ -193,10 +233,141 @@ export function SalonSearchMap({ salons, className = '', heightClassName = 'h-[5
           .addTo(map)
       })
 
-      if (bounds.length === 1) {
-        map.setView(bounds[0], 16)
-      } else if (bounds.length > 1) {
-        map.fitBounds(L.latLngBounds(bounds), { padding: [50, 50], maxZoom: 16 })
+      // 2. Render User Location with Blue Floating Bubble Marker
+      if (userLocation && Number.isFinite(userLocation.lat) && Number.isFinite(userLocation.lng)) {
+        const safeUserLabel = (userLocation.label || 'Vị trí của bạn').replace(/"/g, '&quot;')
+        const userIcon = L.divIcon({
+          className: 'user-location-bubble-marker',
+          html: `
+            <div style="position: relative; transform: translate(-50%, -100%); cursor: pointer; display: flex; flex-direction: column; align-items: center; user-select: none; z-index: 1000;">
+              <!-- Floating Blue Bubble Card -->
+              <div style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: #ffffff;
+                padding: 6px 14px;
+                border-radius: 9999px;
+                box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.12);
+                border: 2px solid #38bdf8;
+                white-space: nowrap;
+              ">
+                <span style="
+                  display: flex;
+                  height: 24px;
+                  width: 24px;
+                  align-items: center;
+                  justify-content: center;
+                  border-radius: 9999px;
+                  background: linear-gradient(135deg, #0284c7, #0369a1);
+                  color: #ffffff;
+                  font-size: 12px;
+                  box-shadow: 0 2px 4px rgba(2, 132, 199, 0.4);
+                ">👤</span>
+                <div style="display: flex; flex-direction: column; text-align: left;">
+                  <span style="font-size: 12px; font-weight: 700; color: #0369a1; max-width: 170px; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                    ${safeUserLabel}
+                  </span>
+                  <span style="font-size: 10px; font-weight: 600; color: #0284c7; line-height: 1;">
+                    ● Điểm xuất phát của bạn
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Speech Bubble Pointer Arrow -->
+              <div style="
+                width: 10px;
+                height: 10px;
+                background: #ffffff;
+                border-right: 2px solid #38bdf8;
+                border-bottom: 2px solid #38bdf8;
+                transform: rotate(45deg);
+                margin-top: -5px;
+              "></div>
+
+              <!-- Blue Pin Base Anchor -->
+              <div style="
+                margin-top: 3px;
+                height: 14px;
+                width: 14px;
+                border-radius: 9999px;
+                background: #0284c7;
+                border: 3px solid #ffffff;
+                box-shadow: 0 3px 6px rgba(0,0,0,0.35);
+              "></div>
+              <!-- Soft Shadow -->
+              <div style="
+                width: 16px;
+                height: 4px;
+                background: rgba(0,0,0,0.3);
+                border-radius: 50%;
+                filter: blur(1.5px);
+                margin-top: -1px;
+              "></div>
+            </div>
+          `,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        })
+
+        L.marker([userLocation.lat, userLocation.lng], {
+          icon: userIcon,
+          title: 'Vị trí của bạn',
+          zIndexOffset: 1000,
+        })
+          .bindPopup(`
+            <div style="padding: 4px; font-family: inherit; font-size: 12px;">
+              <div style="font-weight: 800; color: #0369a1; margin-bottom: 2px;">📍 Vị trí của bạn</div>
+              <div style="color: #64748b; font-size: 11px;">${safeUserLabel}</div>
+              <div style="color: #94a3b8; font-size: 10px; margin-top: 4px;">Tọa độ: ${userLocation.lat}, ${userLocation.lng}</div>
+            </div>
+          `)
+          .addTo(map)
+
+        // Auto-Fit Bounds to contain User Location AND at least 1 Nearest Salon!
+        if (points.length > 0) {
+          let nearest = points[0]
+          let minD = calculateDistanceKm(userLocation.lat, userLocation.lng, points[0].coordinates!.lat, points[0].coordinates!.lng)
+          for (let i = 1; i < points.length; i++) {
+            const d = calculateDistanceKm(userLocation.lat, userLocation.lng, points[i].coordinates!.lat, points[i].coordinates!.lng)
+            if (d < minD) {
+              minD = d
+              nearest = points[i]
+            }
+          }
+
+          onNearestSalonChange?.(nearest, minD)
+
+          // Draw dashed connector line between user and nearest salon
+          L.polyline(
+            [
+              [userLocation.lat, userLocation.lng],
+              [nearest.coordinates!.lat, nearest.coordinates!.lng],
+            ],
+            {
+              color: '#0284c7',
+              weight: 2,
+              dashArray: '6, 8',
+              opacity: 0.8,
+            }
+          ).addTo(map)
+
+          const targetBounds: [number, number][] = [
+            [userLocation.lat, userLocation.lng],
+            [nearest.coordinates!.lat, nearest.coordinates!.lng],
+          ]
+          map.fitBounds(L.latLngBounds(targetBounds), { padding: [70, 70], maxZoom: 16 })
+        } else {
+          onNearestSalonChange?.(null, null)
+          map.setView([userLocation.lat, userLocation.lng], 15)
+        }
+      } else {
+        onNearestSalonChange?.(null, null)
+        if (bounds.length === 1) {
+          map.setView(bounds[0], 16)
+        } else if (bounds.length > 1) {
+          map.fitBounds(L.latLngBounds(bounds), { padding: [50, 50], maxZoom: 16 })
+        }
       }
 
       const timer = setTimeout(() => {
@@ -216,7 +387,7 @@ export function SalonSearchMap({ salons, className = '', heightClassName = 'h-[5
       console.error('Failed to init search map:', err)
       setError(true)
     }
-  }, [points.length, JSON.stringify(points.map((p) => p.id))])
+  }, [points.length, JSON.stringify(points.map((p) => p.id)), userLocation?.lat, userLocation?.lng, userLocation?.label])
 
   return (
     <div className={`space-y-1.5 ${className}`}>
@@ -224,8 +395,13 @@ export function SalonSearchMap({ salons, className = '', heightClassName = 'h-[5
         <div ref={mapContainerRef} className="h-full w-full z-0" />
 
         {/* Top Overlay Badge */}
-        <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-          {points.length > 0 ? (
+        <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2">
+          {userLocation ? (
+            <span className="flex items-center gap-1.5 rounded-full border border-sky-200 bg-white/95 px-3 py-1.5 text-xs font-bold text-sky-700 shadow-sm backdrop-blur-xs">
+              <User size={13} className="text-sky-600" />
+              <span>Vị trí của bạn: {userLocation.label || 'Đã định vị'}</span>
+            </span>
+          ) : points.length > 0 ? (
             <span className="flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/95 px-3 py-1.5 text-xs font-bold text-brand shadow-sm backdrop-blur-xs">
               <MapPin size={14} className="text-brand" />
               <span>{points.length} salon có vị trí trên bản đồ</span>
@@ -237,17 +413,15 @@ export function SalonSearchMap({ salons, className = '', heightClassName = 'h-[5
             </span>
           )}
 
-          {points.length > 0 && (
-            <button
-              type="button"
-              onClick={handleRecenter}
-              className="flex items-center gap-1 rounded-full border border-gray-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-xs transition hover:bg-gray-100"
-              title="Căn chỉnh lại khung nhìn bản đồ"
-            >
-              <Navigation size={13} className="text-gray-500" />
-              <span>Căn giữa</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleRecenter}
+            className="flex items-center gap-1 rounded-full border border-gray-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-xs transition hover:bg-gray-100"
+            title="Căn chỉnh lại khung nhìn bản đồ"
+          >
+            <Navigation size={13} className="text-gray-500" />
+            <span>Căn giữa</span>
+          </button>
         </div>
 
         {error && (
