@@ -34,7 +34,7 @@ export function SearchPage() {
   const longitude = lngStr ? Number(lngStr) : undefined
   const radiusKm = params.get('radiusKm') ? Number(params.get('radiusKm')) : undefined
   const [activeFilter, setActiveFilter] = useState(keyword)
-  const [showMap, setShowMap] = useState(false)
+  const [showMap, setShowMap] = useState(true)
 
   const salons = useSalons({
     keyword,
