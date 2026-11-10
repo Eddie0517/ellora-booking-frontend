@@ -9,6 +9,7 @@ export const jwtAuth = {
   async confirm(email: string, code: string) { const { data } = await api.post<TokenResponse>('/auth/verify-email', { email, code }); return save(data) },
   async resend(email: string) { await api.post('/auth/resend-verification', { email }) },
   async login(email: string, password: string) { const { data } = await api.post<TokenResponse>('/auth/login', { email, password }); return save(data) },
+  async loginWithGoogle(credential: string) { const { data } = await api.post<TokenResponse>('/auth/google', { credential }); return save(data) },
   async logout() { try { await api.post('/auth/logout', { refreshToken: useAuthStore.getState().refreshToken }) } finally { useAuthStore.getState().clear(); queryClient.clear() } },
   async requestPasswordReset(email: string) { await api.post('/auth/forgot-password', { email }) },
   async confirmPasswordReset(email: string, confirmationCode: string, newPassword: string) { await api.post('/auth/confirm-forgot-password', { email, confirmationCode, newPassword }) },
