@@ -73,7 +73,41 @@ api.interceptors.response.use(
 
 export function apiError(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    return error.response?.data?.detail ?? error.response?.data?.message ?? 'Không thể kết nối tới máy chủ. Vui lòng thử lại.'
+    const data = error.response?.data
+    if (data?.detail) return data.detail
+    if (data?.title) return data.title
+    if (data?.message) return data.message
+    if (typeof data === 'string' && data.trim()) return data
+
+    // If server responded with an HTTP status code but no structured body
+    if (error.response?.status) {
+      switch (error.response.status) {
+        case 400:
+          return 'Yêu cầu không hợp lệ. Vui lòng kiểm tra lại thông tin.'
+        case 401:
+          return 'Thông tin xác thực không hợp lệ hoặc phiên đăng nhập đã hết hạn.'
+        case 403:
+          return 'Bạn không có quyền thực hiện thao tác này.'
+        case 404:
+          return 'Không tìm thấy tài nguyên yêu cầu.'
+        case 409:
+          return 'Dữ liệu bị trùng lặp hoặc xung đột.'
+        case 429:
+          return 'Quá nhiều yêu cầu. Vui lòng đợi trong giây lát rồi thử lại.'
+        case 500:
+        case 502:
+        case 503:
+          return 'Máy chủ đang gặp sự cố. Vui lòng thử lại sau.'
+        default:
+          return `Lỗi máy chủ (${error.response.status}). Vui lòng thử lại.`
+      }
+    }
+
+    // Only if there is genuinely no response from server (network error, CORS block, timeout)
+    if (error.code === 'ECONNABORTED') {
+      return 'Kết nối máy chủ bị quá thời gian (timeout). Vui lòng thử lại.'
+    }
+    return 'Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối mạng hoặc thử lại.'
   }
   return error instanceof Error ? error.message : 'Đã xảy ra lỗi. Vui lòng thử lại.'
 }
