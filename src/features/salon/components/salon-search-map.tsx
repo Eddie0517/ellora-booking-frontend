@@ -44,6 +44,7 @@ export function SalonSearchMap({
     if (!mapInstanceRef.current) return
 
     if (userLocation && Number.isFinite(userLocation.lat) && Number.isFinite(userLocation.lng)) {
+      const radiusBounds = L.circle([userLocation.lat, userLocation.lng], { radius: 60000 }).getBounds()
       if (points.length > 0) {
         let nearest = points[0]
         let minD = calculateDistanceKm(userLocation.lat, userLocation.lng, points[0].coordinates!.lat, points[0].coordinates!.lng)
@@ -54,14 +55,9 @@ export function SalonSearchMap({
             nearest = points[i]
           }
         }
-        const targetBounds: [number, number][] = [
-          [userLocation.lat, userLocation.lng],
-          [nearest.coordinates!.lat, nearest.coordinates!.lng],
-        ]
-        mapInstanceRef.current.fitBounds(L.latLngBounds(targetBounds), { padding: [70, 70], maxZoom: 16 })
-      } else {
-        mapInstanceRef.current.setView([userLocation.lat, userLocation.lng], 15)
+        radiusBounds.extend([nearest.coordinates!.lat, nearest.coordinates!.lng])
       }
+      mapInstanceRef.current.fitBounds(radiusBounds, { padding: [30, 30] })
       return
     }
 
@@ -328,7 +324,18 @@ export function SalonSearchMap({
           `)
           .addTo(map)
 
-        // Auto-Fit Bounds to contain User Location AND at least 1 Nearest Salon!
+        // 60 km radius search area bounds around user location
+        const radiusCircle = L.circle([userLocation.lat, userLocation.lng], {
+          radius: 60000,
+          color: '#0284c7',
+          weight: 1.5,
+          dashArray: '6, 8',
+          fillColor: '#38bdf8',
+          fillOpacity: 0.04,
+        }).addTo(map)
+
+        const viewBounds = radiusCircle.getBounds()
+
         if (points.length > 0) {
           let nearest = points[0]
           let minD = calculateDistanceKm(userLocation.lat, userLocation.lng, points[0].coordinates!.lat, points[0].coordinates!.lng)
@@ -356,15 +363,12 @@ export function SalonSearchMap({
             }
           ).addTo(map)
 
-          const targetBounds: [number, number][] = [
-            [userLocation.lat, userLocation.lng],
-            [nearest.coordinates!.lat, nearest.coordinates!.lng],
-          ]
-          map.fitBounds(L.latLngBounds(targetBounds), { padding: [70, 70], maxZoom: 16 })
+          viewBounds.extend([nearest.coordinates!.lat, nearest.coordinates!.lng])
         } else {
           onNearestSalonChange?.(null, null)
-          map.setView([userLocation.lat, userLocation.lng], 15)
         }
+
+        map.fitBounds(viewBounds, { padding: [30, 30] })
       } else {
         onNearestSalonChange?.(null, null)
         if (bounds.length === 1) {
