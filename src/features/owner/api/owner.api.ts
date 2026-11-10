@@ -115,7 +115,7 @@ export const ownerApi = {
       params: {
         ...(salonId ? { salonId } : {}),
         page,
-        size: 20,
+        size: 100,
         ...(status ? { status } : {}),
       },
     })
