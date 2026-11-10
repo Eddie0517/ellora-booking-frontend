@@ -36,6 +36,11 @@ export interface PendingSalonDto {
   description?: string | null
   ownerName?: string | null
   status?: string | null
+  contractUrl?: string | null
+  contractFileName?: string | null
+  contractFileType?: string | null
+  contractUploadedAt?: string | null
+  isOverdue?: boolean | null
 }
 
 export interface SupportContactDto {

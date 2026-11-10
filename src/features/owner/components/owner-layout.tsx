@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   CalendarDays,
   Clock3,
@@ -17,9 +17,13 @@ import {
   Bell,
   Volume2,
   VolumeX,
+  AlertTriangle,
+  CreditCard,
+  Lock,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useOwnerBookings, useOwnerSalon, useOwnerSummary } from '../queries/owner.queries'
+import { useBillingStatus } from '@/features/billing/queries/billing.queries'
 import { useAuthStore } from '@/store/auth.store'
 import { jwtAuth } from '@/features/auth/api/jwt'
 import { SuspendedSalonBadge } from '@/features/salon/components/suspended-salon-badge'
@@ -85,8 +89,12 @@ const links = [
 export function OwnerLayout() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
   const salon = useOwnerSalon()
+  const billingStatus = useBillingStatus()
   const user = useAuthStore((state) => state.user)
+
+  const isOverdueLocked = Boolean(billingStatus.data?.isOverdueLocked || salon.data?.isOverdue)
 
   // Cấu hình chuông âm thanh (lưu trạng thái trong localStorage)
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -390,7 +398,14 @@ export function OwnerLayout() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
                   Cơ sở quản lý
                 </span>
-                <SuspendedSalonBadge status={salon.data?.status} />
+                <div className="flex items-center gap-1">
+                  {isOverdueLocked && (
+                    <span className="rounded-md bg-red-100 border border-red-300 px-1.5 py-0.5 text-[9px] font-bold text-red-700">
+                      Nợ phí quá hạn
+                    </span>
+                  )}
+                  <SuspendedSalonBadge status={salon.data?.status} />
+                </div>
               </div>
               <p className="mt-1.5 truncate text-sm font-bold text-gray-900">
                 {salon.data?.name ?? (salon.isError ? 'Chưa cấu hình salon' : 'Đang tải thông tin…')}
@@ -408,6 +423,8 @@ export function OwnerLayout() {
             {links.map(({ to, label, Icon }) => {
               const isBookings = to === '/owner/bookings'
               const showPendingDot = isBookings && hasPendingBookings
+              const isBilling = to === '/owner/billing'
+              const showOverdueBadge = isBilling && isOverdueLocked
 
               return (
                 <NavLink
@@ -444,9 +461,16 @@ export function OwnerLayout() {
                         />
                         <span>{label}</span>
                       </div>
-                      {isActive && (
-                        <ChevronRight size={15} className="text-brand shrink-0 animate-in fade-in" />
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {showOverdueBadge && (
+                          <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs animate-pulse">
+                            Cần nộp!
+                          </span>
+                        )}
+                        {isActive && (
+                          <ChevronRight size={15} className="text-brand shrink-0 animate-in fade-in" />
+                        )}
+                      </div>
                     </>
                   )}
                 </NavLink>
@@ -521,7 +545,48 @@ export function OwnerLayout() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          {isOverdueLocked && location.pathname === '/owner/billing' && (
+            <div className="mb-6 flex items-start gap-3 rounded-2xl border-2 border-red-300 bg-red-50 p-4 text-red-900 shadow-xs animate-in fade-in">
+              <AlertTriangle className="size-6 text-red-600 shrink-0 mt-0.5" />
+              <div className="flex-1 text-xs">
+                <h4 className="font-bold text-sm text-red-800">
+                  Cơ sở đang bị tạm ngưng hoạt động do quá hạn thanh toán phí sàn
+                </h4>
+                <p className="mt-1 text-red-700 font-medium">
+                  Cửa hàng của bạn đã bị tạm ẩn khỏi tìm kiếm và không nhận được lịch hẹn mới. Vui lòng thanh toán khoản phí bên dưới qua PayOS (VietQR) để tự động mở lại cửa hàng ngay lập tức.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {isOverdueLocked && location.pathname !== '/owner/billing' ? (
+            <div className="mx-auto max-w-2xl py-12 text-center animate-in fade-in zoom-in-95">
+              <div className="mx-auto flex size-20 items-center justify-center rounded-3xl bg-red-100 text-red-600 shadow-lg shadow-red-200/50 mb-6">
+                <Lock size={40} />
+              </div>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700 mb-3">
+                <AlertTriangle size={14} />
+                Tài khoản cơ sở bị khóa tạm thời
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+                Quá hạn thanh toán phí dịch vụ nền tảng
+              </h2>
+              <p className="mt-3 text-sm text-gray-600 max-w-lg mx-auto leading-relaxed">
+                Salon <strong>{salon.data?.name || 'của bạn'}</strong> hiện đã vượt quá hạn thanh toán đối soát hoa hồng định kỳ. Hệ thống đã tạm thời khóa các tính năng quản lý, ẩn salon khỏi danh sách tìm kiếm và ngừng nhận lịch đặt hẹn mới.
+              </p>
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link
+                  to="/owner/billing"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-600/25 hover:bg-red-700 active:scale-95 transition"
+                >
+                  <CreditCard size={18} />
+                  <span>Đến trang Thanh toán phí sàn ngay (PayOS)</span>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
     </div>

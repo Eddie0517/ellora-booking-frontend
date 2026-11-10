@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios'
-import type { BillingConfig, PlatformBill } from '../types/billing.model'
+import type { BillingConfig, BillingStatus, PlatformBill } from '../types/billing.model'
 import type { PageModel } from '@/types/api'
 
 function unwrap<T>(resData: any): T {
@@ -52,5 +52,20 @@ export const billingApi = {
   async getOwnerBill(month: string): Promise<PlatformBill> {
     const res = await api.get<any>('/owner/billing', { params: { month } })
     return unwrap<PlatformBill>(res.data)
+  },
+
+  async preparePayment(month: string): Promise<PlatformBill> {
+    const res = await api.post<any>('/owner/billing/prepare-payment', {}, { params: { month } })
+    return unwrap<PlatformBill>(res.data)
+  },
+
+  async syncPayment(month: string): Promise<PlatformBill> {
+    const res = await api.post<any>('/owner/billing/sync-payment', {}, { params: { month } })
+    return unwrap<PlatformBill>(res.data)
+  },
+
+  async getBillingStatus(): Promise<BillingStatus> {
+    const res = await api.get<any>('/owner/billing/status')
+    return unwrap<BillingStatus>(res.data)
   },
 }

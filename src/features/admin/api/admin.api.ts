@@ -76,8 +76,18 @@ export const adminApi = {
     return pendingSalonMapper.toModel(unwrap<PendingSalonDto>(response.data))
   },
 
-  async decideSalon(id: string, action: 'approve' | 'reject'): Promise<void> {
-    await api.post(ADMIN_ENDPOINTS.decideSalon(id, action), {})
+  async decideSalon(id: string, action: 'approve' | 'reject', contractFile?: File): Promise<void> {
+    if (action === 'approve') {
+      const formData = new FormData()
+      if (contractFile) {
+        formData.append('contract', contractFile)
+      }
+      await api.post(ADMIN_ENDPOINTS.decideSalon(id, action), formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    } else {
+      await api.post(ADMIN_ENDPOINTS.decideSalon(id, action), {})
+    }
   },
 
   async support(): Promise<SupportContact> {

@@ -46,7 +46,7 @@ export function AdminBillingPage() {
     }
     try {
       await updateRate.mutateAsync(num)
-      toast.success('Đã cập nhật tỷ lệ phí cho tháng tiếp theo')
+      toast.success('Đã cập nhật tỷ lệ phí sàn thành công! Tỷ lệ mới áp dụng cho tháng này và tương lai.')
       setRateInput('')
     } catch {
       toast.error('Không thể cập nhật tỷ lệ phí')
@@ -146,7 +146,7 @@ export function AdminBillingPage() {
 
               <form onSubmit={handleSaveRate} className="space-y-3">
                 <label className="block text-xs font-semibold text-gray-700">
-                  Cài đặt tỷ lệ phí cho tháng tiếp theo (%)
+                  Cài đặt tỷ lệ phí sàn chung (%)
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -154,7 +154,7 @@ export function AdminBillingPage() {
                     step="0.01"
                     min="0"
                     max="100"
-                    placeholder={`Ví dụ: ${configQuery.data.nextPercent}`}
+                    placeholder={`Ví dụ: ${configQuery.data.currentPercent}`}
                     value={rateInput}
                     onChange={(e) => setRateInput(e.target.value)}
                     className="flex-1 rounded-xl border border-slate-200 px-3.5 py-2 text-sm focus:border-[#8C3A5A] focus:outline-none"
@@ -168,7 +168,7 @@ export function AdminBillingPage() {
                   </button>
                 </div>
                 <p className="text-[11px] text-gray-400">
-                  * Tỷ lệ mới sẽ tự động có hiệu lực từ ngày đầu tiên của tháng tiếp theo. Không áp dụng hồi tố tháng trước.
+                  * Tỷ lệ mới sẽ tự động có hiệu lực ngay cho tháng hiện tại và các tháng tương lai.
                 </p>
               </form>
             </div>

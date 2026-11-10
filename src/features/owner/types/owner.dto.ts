@@ -22,6 +22,11 @@ export interface OwnerSalonDto {
   longitude?: number | null
   logoUrl?: string | null
   imageUrls?: string[] | null
+  contractUrl?: string | null
+  contractFileName?: string | null
+  contractFileType?: string | null
+  contractUploadedAt?: string | null
+  isOverdue?: boolean | null
 }
 
 export interface SaveSalonDto {
