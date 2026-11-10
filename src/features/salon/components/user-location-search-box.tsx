@@ -38,6 +38,7 @@ export function UserLocationSearchBox({
 
   const containerRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const isSelectedRef = useRef(false)
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -52,6 +53,12 @@ export function UserLocationSearchBox({
 
   // Debounced search when query changes
   useEffect(() => {
+    // If query was changed programmatically by selecting a suggestion, don't re-trigger search!
+    if (isSelectedRef.current) {
+      isSelectedRef.current = false
+      return
+    }
+
     if (!query.trim() || query.trim().length < 2) {
       setSuggestions([])
       setIsOpen(false)
@@ -89,6 +96,7 @@ export function UserLocationSearchBox({
   }, [query])
 
   const handleSelectSuggestion = (place: PlaceSuggestion) => {
+    isSelectedRef.current = true
     onLocationSelect({
       lat: place.lat,
       lng: place.lng,
@@ -125,12 +133,14 @@ export function UserLocationSearchBox({
 
     try {
       const pos = await placeSearchService.getCurrentPosition()
+      isSelectedRef.current = true
       onLocationSelect({
         lat: pos.lat,
         lng: pos.lng,
         label: 'Vị trí hiện tại của bạn (GPS)',
       })
       setQuery('Vị trí GPS của bạn')
+      setSuggestions([])
       setIsOpen(false)
     } catch (err: any) {
       setErrorMsg(err.message || 'Không thể lấy vị trí GPS.')
@@ -179,6 +189,7 @@ export function UserLocationSearchBox({
               type="text"
               value={query}
               onChange={(e) => {
+                isSelectedRef.current = false
                 setQuery(e.target.value)
                 setErrorMsg('')
               }}

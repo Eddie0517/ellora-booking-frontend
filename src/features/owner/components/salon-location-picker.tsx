@@ -68,6 +68,7 @@ export function SalonLocationPicker({
   const markerRef = useRef<L.Marker | null>(null)
   const searchContainerRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const isSelectedRef = useRef(false)
 
   // Search & Google Maps auto-locate states
   const [searchInput, setSearchInput] = useState('')
@@ -90,6 +91,11 @@ export function SalonLocationPicker({
 
   // Debounced search for suggestions when user types in search input
   useEffect(() => {
+    if (isSelectedRef.current) {
+      isSelectedRef.current = false
+      return
+    }
+
     if (!searchInput.trim() || searchInput.trim().length < 2) {
       setSuggestions([])
       setIsDropdownOpen(false)
@@ -172,6 +178,7 @@ export function SalonLocationPicker({
 
   // Handle selecting a place from dropdown
   const handleSelectPlace = (place: PlaceSuggestion) => {
+    isSelectedRef.current = true
     applyCoordinates(
       { lat: place.lat, lng: place.lng },
       `✓ Đã định vị thành công: ${place.name}`
@@ -344,6 +351,7 @@ export function SalonLocationPicker({
                   type="text"
                   value={searchInput}
                   onChange={(e) => {
+                    isSelectedRef.current = false
                     setSearchInput(e.target.value)
                     setStatusError('')
                     setStatusSuccess('')
