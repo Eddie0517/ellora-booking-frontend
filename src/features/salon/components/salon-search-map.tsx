@@ -6,9 +6,10 @@ import type { Salon } from '../types/salon.model'
 interface SalonSearchMapProps {
   salons: Salon[]
   className?: string
+  heightClassName?: string
 }
 
-export function SalonSearchMap({ salons, className = '' }: SalonSearchMapProps) {
+export function SalonSearchMap({ salons, className = '', heightClassName = 'h-[500px]' }: SalonSearchMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const [error, setError] = useState(false)
@@ -202,8 +203,12 @@ export function SalonSearchMap({ salons, className = '' }: SalonSearchMapProps) 
         map.invalidateSize()
       }, 300)
 
+      const onResize = () => map.invalidateSize()
+      window.addEventListener('resize', onResize)
+
       return () => {
         clearTimeout(timer)
+        window.removeEventListener('resize', onResize)
         map.remove()
         mapInstanceRef.current = null
       }
@@ -215,7 +220,7 @@ export function SalonSearchMap({ salons, className = '' }: SalonSearchMapProps) 
 
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <div className="relative h-[480px] w-full overflow-hidden rounded-2xl border border-rose-200 shadow-sm bg-rose-50/20">
+      <div className={`relative ${heightClassName} w-full overflow-hidden rounded-2xl border border-rose-200 shadow-sm bg-rose-50/20`}>
         <div ref={mapContainerRef} className="h-full w-full z-0" />
 
         {/* Top Overlay Badge */}
