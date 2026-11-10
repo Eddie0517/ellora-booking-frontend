@@ -41,6 +41,12 @@ export function SiteHeader() {
 
   const isTransparent = !isScrolled && !open
 
+  const isSalonOwner = user?.role === 'SALON_OWNER'
+  const visibleNavLinks = navigationLinks.filter((item) => {
+    if (isSalonOwner && item.to === '/search') return false
+    return true
+  })
+
   return (
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
@@ -64,8 +70,8 @@ export function SiteHeader() {
           />
         </Link>
 
-        {/* Global Quick Search Pill (Desktop) */}
-        {pathname !== '/' ? (
+        {/* Global Quick Search Pill (Desktop - hidden for salon owner) */}
+        {pathname !== '/' && !isSalonOwner ? (
           <Link
             to="/search"
             className="hidden lg:flex items-center gap-2.5 rounded-full border border-gray-200/90 bg-gray-50/90 px-4 py-2.5 text-sm text-gray-500 transition-all hover:border-pink-300 hover:bg-white hover:text-gray-900 shadow-2xs"
@@ -78,7 +84,7 @@ export function SiteHeader() {
         {/* Desktop Navigation Links & Auth */}
         <nav className="hidden md:flex items-center gap-8" aria-label="Điều hướng chính">
           <div className="flex items-center gap-7">
-            {navigationLinks.map((item) => (
+            {visibleNavLinks.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -193,7 +199,7 @@ export function SiteHeader() {
       {open && (
         <div className="border-b border-gray-100 bg-white px-4 py-5 shadow-xl md:hidden">
           <div className="flex flex-col gap-1.5">
-            {navigationLinks.map((item) => (
+            {visibleNavLinks.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}

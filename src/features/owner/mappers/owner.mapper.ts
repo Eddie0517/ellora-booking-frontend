@@ -24,13 +24,13 @@ export class OwnerSalonMapper extends BaseMapper<OwnerSalonDto, OwnerSalon> {
   }
   toSaveDto(model: SaveSalon): SaveSalonDto {
     return {
-      name: model.name.trim(),
-      description: model.description.trim(),
-      address: model.address.trim(),
-      city: model.city.trim(),
-      district: model.district.trim(),
-      phone: model.phone.trim(),
-      email: model.email.trim(),
+      name: (model.name ?? '').trim(),
+      description: (model.description ?? '').trim(),
+      address: (model.address ?? '').trim(),
+      city: (model.city ?? '').trim(),
+      district: (model.district ?? '').trim(),
+      phone: (model.phone ?? '').trim(),
+      email: (model.email ?? '').trim(),
       ...(model.logoUrl !== undefined ? { logoUrl: model.logoUrl } : {}),
       ...(model.latitude !== undefined ? { latitude: model.latitude } : {}),
       ...(model.longitude !== undefined ? { longitude: model.longitude } : {}),

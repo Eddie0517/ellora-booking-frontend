@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, SlidersHorizontal, SearchX, Sparkles } from 'lucide-react'
+import { Navigate, useSearchParams } from 'react-router-dom'
+import { ChevronLeft, ChevronRight, SlidersHorizontal, SearchX, Sparkles, Map as MapIcon, LayoutGrid } from 'lucide-react'
 import { SalonCard } from './salon-card'
 import { SalonSearchForm } from './salon-search-form'
+import { SalonSearchMap } from './salon-search-map'
 import { useSalons } from '../queries/salon.queries'
+import { useAuthStore } from '@/store/auth.store'
 
 const quickFilters = [
   { label: 'Tất cả', value: '' },
@@ -14,6 +16,11 @@ const quickFilters = [
 ]
 
 export function SearchPage() {
+  const user = useAuthStore((state) => state.user)
+  if (user?.role === 'SALON_OWNER') {
+    return <Navigate to="/owner/dashboard" replace />
+  }
+
   const [params, setParams] = useSearchParams()
   const page = Math.max(0, Number(params.get('page') ?? 0) || 0)
   const keyword = params.get('keyword') ?? ''
@@ -27,6 +34,7 @@ export function SearchPage() {
   const longitude = lngStr ? Number(lngStr) : undefined
   const radiusKm = params.get('radiusKm') ? Number(params.get('radiusKm')) : undefined
   const [activeFilter, setActiveFilter] = useState(keyword)
+  const [showMap, setShowMap] = useState(false)
 
   const salons = useSalons({
     keyword,
@@ -117,7 +125,7 @@ export function SearchPage() {
         </div>
 
         {/* Results Bar */}
-        <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4">
           <p className="text-sm text-gray-600">
             {salons.isPending ? (
               'Đang tải danh sách salon...'
@@ -129,10 +137,32 @@ export function SearchPage() {
             ) : null}
           </p>
 
-          <span className="text-xs text-gray-400">
-            Trang {page + 1} / {totalPages}
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowMap(!showMap)}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                showMap
+                  ? 'border-brand bg-brand text-white shadow-2xs'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-pink-200 hover:bg-rose-50/50 hover:text-brand'
+              }`}
+            >
+              {showMap ? <LayoutGrid size={13} /> : <MapIcon size={13} />}
+              <span>{showMap ? 'Ẩn bản đồ' : 'Xem bản đồ'}</span>
+            </button>
+
+            <span className="text-xs text-gray-400">
+              Trang {page + 1} / {totalPages}
+            </span>
+          </div>
         </div>
+
+        {/* Search Map View */}
+        {showMap && salons.data && salons.data.content.length > 0 && (
+          <div className="mb-8">
+            <SalonSearchMap salons={salons.data.content} />
+          </div>
+        )}
 
         {/* Content State */}
         {salons.isPending ? (

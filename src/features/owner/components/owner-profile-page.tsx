@@ -19,6 +19,7 @@ import { SuspendedSalonBadge } from '@/features/salon/components/suspended-salon
 import { apiError } from '@/lib/axios'
 import { toast } from 'sonner'
 import type { SaveSalon } from '../types/owner.model'
+import { SalonLocationPicker } from './salon-location-picker'
 
 export function OwnerProfilePage() {
   const salon = useOwnerSalon()
@@ -60,6 +61,8 @@ export function OwnerProfilePage() {
     phone: salon.data.phone,
     email: salon.data.email,
     logoUrl: salon.data.logoUrl,
+    latitude: salon.data.latitude,
+    longitude: salon.data.longitude,
   }
 
   const isDirty = edited !== null
@@ -316,6 +319,24 @@ export function OwnerProfilePage() {
               onChange={(e) => setEdited({ ...d, city: e.target.value })}
               placeholder="TP. Hồ Chí Minh, Hà Nội..."
               className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-xs text-gray-900 outline-none transition focus:border-brand focus:ring-1 focus:ring-brand placeholder:text-gray-400 shadow-2xs"
+            />
+          </div>
+
+          {/* Map Location Picker */}
+          <div className="sm:col-span-2 pt-2">
+            <SalonLocationPicker
+              value={
+                d.latitude != null && d.longitude != null
+                  ? { lat: d.latitude, lng: d.longitude }
+                  : null
+              }
+              onChange={(coords) =>
+                setEdited({
+                  ...d,
+                  latitude: coords.lat,
+                  longitude: coords.lng,
+                })
+              }
             />
           </div>
         </div>
