@@ -184,3 +184,10 @@ body {
     outline-offset: 2px;
   }
 }
+
+/* Clean Soft Light Basemap (Light pastel aesthetic, zero watermarks, no API key required) */
+.clean-light-map .leaflet-tile-pane,
+.clean-light-tiles,
+.leaflet-tile-pane.clean-light-tiles {
+  filter: brightness(1.04) contrast(0.92) saturate(0.65);
+}

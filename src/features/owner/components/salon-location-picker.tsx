@@ -222,10 +222,10 @@ export function SalonLocationPicker({
 
     L.control.zoom({ position: 'bottomright' }).addTo(map)
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 20,
-      subdomains: 'abcd',
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      className: 'clean-light-tiles',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
     }).addTo(map)
 
     const icon = createGooglePinIcon()
@@ -439,30 +439,21 @@ export function SalonLocationPicker({
       )}
 
       {/* Map Container with Google Maps Red Pin */}
-      <div className="relative h-64 sm:h-72 w-full overflow-hidden rounded-xl border border-gray-200 shadow-2xs bg-rose-50/20">
+      <div className="relative h-64 sm:h-72 w-full overflow-hidden rounded-xl border border-gray-200 shadow-2xs bg-rose-50/20 clean-light-map">
         <div ref={mapContainerRef} className="h-full w-full z-0" />
       </div>
 
       <div className="flex items-center justify-between text-[11px] text-gray-400">
         <span>Kéo ghim hoặc chạm vào bản đồ để tinh chỉnh vị trí chính xác.</span>
         <span>
-          Bản đồ &copy;{' '}
+          Bản đồ OpenStreetMap &copy;{' '}
           <a
             href="https://www.openstreetmap.org/copyright"
             target="_blank"
             rel="noopener noreferrer"
             className="underline hover:text-gray-600"
           >
-            OpenStreetMap
-          </a>{' '}
-          &copy;{' '}
-          <a
-            href="https://carto.com/attributions"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-gray-600"
-          >
-            CARTO
+            OpenStreetMap contributors
           </a>
         </span>
       </div>

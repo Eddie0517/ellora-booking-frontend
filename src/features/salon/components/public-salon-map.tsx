@@ -36,10 +36,10 @@ export function PublicSalonMap({ coordinates, salonName, className = '' }: Publi
 
       L.control.zoom({ position: 'bottomright' }).addTo(map)
 
-      const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 20,
-        subdomains: 'abcd',
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
+      const tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        className: 'clean-light-tiles',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
       })
       tileLayer.on('tileerror', () => setError(true))
       tileLayer.addTo(map)
@@ -152,7 +152,7 @@ export function PublicSalonMap({ coordinates, salonName, className = '' }: Publi
 
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <div className="relative h-60 w-full overflow-hidden rounded-xl border border-rose-100 bg-rose-50/30">
+      <div className="relative h-60 w-full overflow-hidden rounded-xl border border-rose-100 bg-rose-50/30 clean-light-map">
         <div ref={mapContainerRef} className="h-full w-full z-0" />
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50/90 p-4 text-center text-xs text-gray-500">
@@ -161,23 +161,14 @@ export function PublicSalonMap({ coordinates, salonName, className = '' }: Publi
         )}
       </div>
       <p className="text-[11px] text-gray-400">
-        Bản đồ &copy;{' '}
+        Dữ liệu bản đồ &copy;{' '}
         <a
           href="https://www.openstreetmap.org/copyright"
           target="_blank"
           rel="noopener noreferrer"
           className="underline hover:text-gray-600"
         >
-          OpenStreetMap
-        </a>{' '}
-        &copy;{' '}
-        <a
-          href="https://carto.com/attributions"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline hover:text-gray-600"
-        >
-          CARTO
+          OpenStreetMap contributors
         </a>
       </p>
     </div>

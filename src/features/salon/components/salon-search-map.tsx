@@ -96,10 +96,10 @@ export function SalonSearchMap({
       // Zoom control placed at bottom right to avoid overlapping top badges
       L.control.zoom({ position: 'bottomright' }).addTo(map)
 
-      const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 20,
-        subdomains: 'abcd',
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
+      const tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        className: 'clean-light-tiles',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
       })
       tileLayer.on('tileerror', () => setError(true))
       tileLayer.addTo(map)
@@ -395,7 +395,7 @@ export function SalonSearchMap({
 
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <div className={`relative ${heightClassName} w-full overflow-hidden rounded-2xl border border-rose-200 shadow-sm bg-rose-50/20`}>
+      <div className={`relative ${heightClassName} w-full overflow-hidden rounded-2xl border border-rose-200 shadow-sm bg-rose-50/20 clean-light-map`}>
         <div ref={mapContainerRef} className="h-full w-full z-0" />
 
         {/* Top Overlay Badges */}
@@ -447,16 +447,7 @@ export function SalonSearchMap({
             rel="noopener noreferrer"
             className="underline hover:text-gray-600"
           >
-            OpenStreetMap
-          </a>{' '}
-          &copy;{' '}
-          <a
-            href="https://carto.com/attributions"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-gray-600"
-          >
-            CARTO
+            OpenStreetMap contributors
           </a>
         </span>
       </div>
