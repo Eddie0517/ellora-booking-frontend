@@ -14,6 +14,27 @@ interface SalonLocationPickerProps {
   disabledReason?: string
 }
 
+function createGooglePinIcon() {
+  return L.divIcon({
+    className: 'custom-google-picker-pin',
+    html: `
+      <div style="position: relative; transform: translate(-50%, -100%); cursor: grab; display: flex; flex-direction: column; align-items: center; user-select: none;">
+        <div style="background: #111827; color: #ffffff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 9999px; white-space: nowrap; box-shadow: 0 4px 8px rgba(0,0,0,0.25); margin-bottom: 4px; border: 1.5px solid rgba(255,255,255,0.9); display: flex; align-items: center; gap: 4px;">
+          <span>📍 Vị trí salon</span>
+        </div>
+        <svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35));">
+          <path d="M18 0C8.05888 0 0 8.05888 0 18C0 27.8 13.5 42.5 17.1 47.1C17.5 47.7 18.5 47.7 18.9 47.1C22.5 42.5 36 27.8 36 18C36 8.05888 27.9411 0 18 0Z" fill="#EA4335"/>
+          <circle cx="18" cy="18" r="7" fill="#FFFFFF"/>
+          <circle cx="18" cy="18" r="4" fill="#B3261E"/>
+        </svg>
+        <div style="width: 14px; height: 5px; background: rgba(0,0,0,0.35); border-radius: 50%; filter: blur(1.5px); margin-top: -3px;"></div>
+      </div>
+    `,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+  })
+}
+
 function isValidCoords(coords: SalonCoordinates | null | undefined): coords is SalonCoordinates {
   return (
     !!coords &&
@@ -67,12 +88,7 @@ export function SalonLocationPicker({
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
     }).addTo(map)
 
-    const icon = L.divIcon({
-      className: 'salon-location-pin',
-      html: '<span aria-hidden="true">●</span>',
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-    })
+    const icon = createGooglePinIcon()
 
     // If initial coords exist, place marker
     if (value && isValidCoords(value)) {
@@ -172,12 +188,7 @@ export function SalonLocationPicker({
       if (markerRef.current) {
         markerRef.current.setLatLng([selected.lat, selected.lng])
       } else {
-        const icon = L.divIcon({
-          className: 'salon-location-pin',
-          html: '<span aria-hidden="true">●</span>',
-          iconSize: [30, 30],
-          iconAnchor: [15, 30],
-        })
+        const icon = createGooglePinIcon()
         const marker = L.marker([selected.lat, selected.lng], {
           icon,
           draggable: !disabled,

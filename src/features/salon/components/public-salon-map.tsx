@@ -40,11 +40,79 @@ export function PublicSalonMap({ coordinates, salonName, className = '' }: Publi
       tileLayer.on('tileerror', () => setError(true))
       tileLayer.addTo(map)
 
+      const safeName = (salonName || 'Salon').replace(/"/g, '&quot;')
       const icon = L.divIcon({
-        className: 'salon-location-pin',
-        html: '<span aria-hidden="true">●</span>',
-        iconSize: [28, 28],
-        iconAnchor: [14, 28],
+        className: 'public-salon-bubble-marker',
+        html: `
+          <div style="position: relative; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; pointer-events: auto; user-select: none;">
+            <!-- Floating Bubble Card -->
+            <div style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              background: #ffffff;
+              padding: 6px 14px;
+              border-radius: 9999px;
+              box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.28), 0 8px 10px -6px rgba(0, 0, 0, 0.12);
+              border: 1.5px solid #fecdd3;
+              white-space: nowrap;
+            ">
+              <span style="
+                display: flex;
+                height: 24px;
+                width: 24px;
+                align-items: center;
+                justify-content: center;
+                border-radius: 9999px;
+                background: linear-gradient(135deg, #f43f5e, #e11d48);
+                color: #ffffff;
+                font-size: 12px;
+                box-shadow: 0 2px 4px rgba(225, 29, 72, 0.35);
+              ">💅</span>
+              <div style="display: flex; flex-direction: column; text-align: left;">
+                <span style="font-size: 12px; font-weight: 700; color: #0f172a; max-width: 170px; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                  ${safeName}
+                </span>
+                <span style="font-size: 10px; font-weight: 600; color: #059669; line-height: 1;">
+                  ● Vị trí cơ sở
+                </span>
+              </div>
+            </div>
+            
+            <!-- Speech Bubble Pointer Arrow -->
+            <div style="
+              width: 10px;
+              height: 10px;
+              background: #ffffff;
+              border-right: 1.5px solid #fecdd3;
+              border-bottom: 1.5px solid #fecdd3;
+              transform: rotate(45deg);
+              margin-top: -5px;
+            "></div>
+
+            <!-- Red Pin Base Anchor -->
+            <div style="
+              margin-top: 3px;
+              height: 14px;
+              width: 14px;
+              border-radius: 9999px;
+              background: #e11d48;
+              border: 3px solid #ffffff;
+              box-shadow: 0 3px 6px rgba(0,0,0,0.35);
+            "></div>
+            <!-- Soft Shadow -->
+            <div style="
+              width: 16px;
+              height: 4px;
+              background: rgba(0,0,0,0.3);
+              border-radius: 50%;
+              filter: blur(1.5px);
+              margin-top: -1px;
+            "></div>
+          </div>
+        `,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
       })
 
       L.marker([coordinates.lat, coordinates.lng], {

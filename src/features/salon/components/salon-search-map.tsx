@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
+import { MapPin, Navigation, Info } from 'lucide-react'
 import type { Salon } from '../types/salon.model'
 
 interface SalonSearchMapProps {
@@ -23,12 +24,30 @@ export function SalonSearchMap({ salons, className = '' }: SalonSearchMapProps) 
       s.coordinates.lng <= 180,
   )
 
+  const handleRecenter = () => {
+    if (!mapInstanceRef.current) return
+    if (points.length === 1) {
+      mapInstanceRef.current.setView([points[0].coordinates!.lat, points[0].coordinates!.lng], 16)
+    } else if (points.length > 1) {
+      const bounds = points.map((p) => [p.coordinates!.lat, p.coordinates!.lng] as [number, number])
+      mapInstanceRef.current.fitBounds(L.latLngBounds(bounds), { padding: [50, 50], maxZoom: 16 })
+    } else {
+      mapInstanceRef.current.setView([10.776889, 106.700806], 13)
+    }
+  }
+
   useEffect(() => {
     if (!mapContainerRef.current) return
-    if (!points.length) return
 
     try {
+      const defaultCenter: [number, number] =
+        points.length > 0
+          ? [points[0].coordinates!.lat, points[0].coordinates!.lng]
+          : [10.776889, 106.700806] // Trung tâm TP. Hồ Chí Minh
+
       const map = L.map(mapContainerRef.current, {
+        center: defaultCenter,
+        zoom: points.length > 0 ? 15 : 13,
         scrollWheelZoom: false,
       })
       mapInstanceRef.current = map
@@ -40,57 +59,113 @@ export function SalonSearchMap({ salons, className = '' }: SalonSearchMapProps) 
       tileLayer.on('tileerror', () => setError(true))
       tileLayer.addTo(map)
 
-      const icon = L.divIcon({
-        className: 'salon-location-pin',
-        html: '<span aria-hidden="true">●</span>',
-        iconSize: [26, 26],
-        iconAnchor: [13, 26],
-      })
-
       const bounds: [number, number][] = []
 
       points.forEach((salon) => {
         const pt = salon.coordinates!
         bounds.push([pt.lat, pt.lng])
 
-        const popupEl = document.createElement('div')
-        popupEl.className = 'p-1 text-xs space-y-1'
+        const safeName = (salon.name || 'Salon').replace(/"/g, '&quot;')
+        const icon = L.divIcon({
+          className: 'search-salon-bubble-marker',
+          html: `
+            <div style="position: relative; transform: translate(-50%, -100%); cursor: pointer; display: flex; flex-direction: column; align-items: center; user-select: none;">
+              <!-- Floating Bubble -->
+              <div style="
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                background: #e11d48;
+                color: #ffffff;
+                padding: 5px 12px;
+                border-radius: 9999px;
+                border: 2px solid #ffffff;
+                box-shadow: 0 6px 14px rgba(225, 29, 72, 0.45);
+                white-space: nowrap;
+                transition: transform 0.15s ease;
+              ">
+                <span style="font-size: 11px;">💅</span>
+                <span style="font-size: 11px; font-weight: 700; max-width: 140px; overflow: hidden; text-overflow: ellipsis;">
+                  ${safeName}
+                </span>
+              </div>
+              <!-- Speech Bubble Stem -->
+              <div style="
+                width: 8px;
+                height: 8px;
+                background: #e11d48;
+                transform: rotate(45deg);
+                margin-top: -4px;
+                border-right: 2px solid #ffffff;
+                border-bottom: 2px solid #ffffff;
+              "></div>
+              <!-- Ground Pin Dot -->
+              <div style="
+                width: 14px;
+                height: 4px;
+                background: rgba(0,0,0,0.3);
+                border-radius: 50%;
+                filter: blur(1px);
+                margin-top: 1px;
+              "></div>
+            </div>
+          `,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        })
 
-        const title = document.createElement('div')
-        title.className = 'font-bold text-gray-900 text-sm'
-        title.textContent = salon.name
-        popupEl.appendChild(title)
+        const addressText = [salon.address, salon.district, salon.city].filter(Boolean).join(', ')
+        const thumb = salon.images?.[0] || salon.logoUrl || ''
 
-        const addr = document.createElement('div')
-        addr.className = 'text-gray-600'
-        addr.textContent = [salon.address, salon.district, salon.city].filter(Boolean).join(', ')
-        popupEl.appendChild(addr)
-
-        if (salon.distanceKm !== null && salon.distanceKm !== undefined) {
-          const dist = document.createElement('div')
-          dist.className = 'text-brand font-medium'
-          dist.textContent = `Cách bạn: ~${salon.distanceKm} km`
-          popupEl.appendChild(dist)
-        }
-
-        const link = document.createElement('a')
-        link.href = `/salon/${encodeURIComponent(salon.id)}`
-        link.className = 'inline-block mt-1 font-semibold text-brand hover:underline'
-        link.textContent = 'Xem chi tiết tiệm →'
-        popupEl.appendChild(link)
+        const popupHtml = `
+          <div style="min-width: 220px; max-width: 260px; padding: 2px; font-family: inherit;">
+            ${thumb ? `<img src="${thumb}" alt="${safeName}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 10px; margin-bottom: 8px;" />` : ''}
+            <div style="font-weight: 800; font-size: 13px; color: #0f172a; margin-bottom: 3px; line-height: 1.3;">
+              ${safeName}
+            </div>
+            <div style="font-size: 11px; color: #64748b; margin-bottom: 5px; line-height: 1.3;">
+              📍 ${addressText}
+            </div>
+            ${salon.distanceKm !== null && salon.distanceKm !== undefined ? `
+              <div style="font-size: 11px; color: #e11d48; font-weight: 600; margin-bottom: 5px;">
+                🚗 Cách bạn: ~${salon.distanceKm} km
+              </div>
+            ` : ''}
+            ${salon.rating ? `
+              <div style="font-size: 11px; color: #f59e0b; font-weight: 700; margin-bottom: 8px;">
+                ⭐ ${salon.rating.toFixed(1)} (${salon.reviewCount || 0} đánh giá)
+              </div>
+            ` : ''}
+            <a href="/salon/${encodeURIComponent(salon.id)}" style="
+              display: block;
+              text-align: center;
+              background: #e11d48;
+              color: #ffffff;
+              font-size: 11px;
+              font-weight: 700;
+              padding: 7px 12px;
+              border-radius: 9999px;
+              text-decoration: none;
+              box-shadow: 0 2px 4px rgba(225, 29, 72, 0.3);
+            ">Xem chi tiết & Đặt hẹn →</a>
+          </div>
+        `
 
         L.marker([pt.lat, pt.lng], {
           icon,
           title: salon.name,
         })
-          .bindPopup(popupEl)
+          .bindPopup(popupHtml, {
+            maxWidth: 300,
+            className: 'salon-popup-card',
+          })
           .addTo(map)
       })
 
       if (bounds.length === 1) {
-        map.setView(bounds[0], 15)
+        map.setView(bounds[0], 16)
       } else if (bounds.length > 1) {
-        map.fitBounds(L.latLngBounds(bounds), { padding: [30, 30], maxZoom: 15 })
+        map.fitBounds(L.latLngBounds(bounds), { padding: [50, 50], maxZoom: 16 })
       }
 
       const timer = setTimeout(() => {
@@ -108,36 +183,59 @@ export function SalonSearchMap({ salons, className = '' }: SalonSearchMapProps) 
     }
   }, [points.length, JSON.stringify(points.map((p) => p.id))])
 
-  if (!points.length) {
-    return (
-      <div className={`flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-gray-50/50 p-8 text-center text-gray-500 ${className}`}>
-        <p className="text-sm font-medium text-gray-700">Chưa có salon nào có tọa độ bản đồ trong trang kết quả này.</p>
-        <p className="mt-1 text-xs text-gray-500">Bạn vẫn có thể xem danh sách địa chỉ và đặt lịch hẹn ở bên cạnh.</p>
-      </div>
-    )
-  }
-
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <div className="relative h-[480px] w-full overflow-hidden rounded-2xl border border-rose-200 shadow-xs bg-rose-50/20">
+      <div className="relative h-[480px] w-full overflow-hidden rounded-2xl border border-rose-200 shadow-sm bg-rose-50/20">
         <div ref={mapContainerRef} className="h-full w-full z-0" />
+
+        {/* Top Overlay Badge */}
+        <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+          {points.length > 0 ? (
+            <span className="flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/95 px-3 py-1.5 text-xs font-bold text-brand shadow-sm backdrop-blur-xs">
+              <MapPin size={14} className="text-brand" />
+              <span>{points.length} salon có vị trí trên bản đồ</span>
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm backdrop-blur-xs">
+              <Info size={14} className="text-amber-600" />
+              <span>Chưa có salon nào có tọa độ trong trang này (Hiển thị TP.HCM)</span>
+            </span>
+          )}
+
+          {points.length > 0 && (
+            <button
+              type="button"
+              onClick={handleRecenter}
+              className="flex items-center gap-1 rounded-full border border-gray-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-xs transition hover:bg-gray-100"
+              title="Căn chỉnh lại khung nhìn bản đồ"
+            >
+              <Navigation size={13} className="text-gray-500" />
+              <span>Căn giữa</span>
+            </button>
+          )}
+        </div>
+
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/90 p-4 text-center text-xs text-gray-600">
             Không tải được hình ảnh bản đồ. Danh sách salon vẫn hoạt động bình thường.
           </div>
         )}
       </div>
-      <p className="text-right text-[11px] text-gray-400">
-        Hiển thị {points.length} salon có vị trí. &copy;{' '}
-        <a
-          href="https://www.openstreetmap.org/copyright"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline hover:text-gray-600"
-        >
-          OpenStreetMap contributors
-        </a>
-      </p>
+
+      <div className="flex items-center justify-between text-[11px] text-gray-400">
+        <span>Bấm vào bong bóng tên salon trên bản đồ để xem chi tiết và đặt lịch hẹn.</span>
+        <span>
+          &copy;{' '}
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-gray-600"
+          >
+            OpenStreetMap contributors
+          </a>
+        </span>
+      </div>
     </div>
   )
 }

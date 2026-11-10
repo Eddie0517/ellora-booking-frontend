@@ -158,9 +158,9 @@ export function SearchPage() {
         </div>
 
         {/* Search Map View */}
-        {showMap && salons.data && salons.data.content.length > 0 && (
+        {showMap && salons.data && (
           <div className="mb-8">
-            <SalonSearchMap salons={salons.data.content} />
+            <SalonSearchMap salons={salons.data.content ?? []} />
           </div>
         )}
 
