@@ -88,13 +88,18 @@ export function SalonSearchMap({
       const map = L.map(mapContainerRef.current, {
         center: defaultCenter,
         zoom: userLocation || points.length > 0 ? 15 : 13,
-        scrollWheelZoom: false,
+        scrollWheelZoom: true,
+        zoomControl: false,
       })
       mapInstanceRef.current = map
 
-      const tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+      // Zoom control placed at bottom right to avoid overlapping top badges
+      L.control.zoom({ position: 'bottomright' }).addTo(map)
+
+      const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
       })
       tileLayer.on('tileerror', () => setError(true))
       tileLayer.addTo(map)
@@ -393,29 +398,31 @@ export function SalonSearchMap({
       <div className={`relative ${heightClassName} w-full overflow-hidden rounded-2xl border border-rose-200 shadow-sm bg-rose-50/20`}>
         <div ref={mapContainerRef} className="h-full w-full z-0" />
 
-        {/* Top Overlay Badge */}
-        <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2">
-          {userLocation ? (
-            <span className="flex items-center gap-1.5 rounded-full border border-sky-200 bg-white/95 px-3 py-1.5 text-xs font-bold text-sky-700 shadow-sm backdrop-blur-xs">
-              <User size={13} className="text-sky-600" />
-              <span>Vị trí của bạn: {userLocation.label || 'Đã định vị'}</span>
-            </span>
-          ) : points.length > 0 ? (
-            <span className="flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/95 px-3 py-1.5 text-xs font-bold text-brand shadow-sm backdrop-blur-xs">
-              <MapPin size={14} className="text-brand" />
-              <span>{points.length} salon có vị trí trên bản đồ</span>
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm backdrop-blur-xs">
-              <Info size={14} className="text-amber-600" />
-              <span>Chưa có salon nào có vị trí trên bản đồ trong trang này (Hiển thị TP.HCM)</span>
-            </span>
-          )}
+        {/* Top Overlay Badges */}
+        <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none gap-2">
+          <div className="flex flex-wrap items-center gap-2 pointer-events-auto max-w-[calc(100%-85px)]">
+            {userLocation ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-white/95 px-3 py-1.5 text-xs font-bold text-sky-700 shadow-sm backdrop-blur-xs max-w-full">
+                <User size={13} className="text-sky-600 shrink-0" />
+                <span className="truncate">Vị trí của bạn: {userLocation.label || 'Đã định vị'}</span>
+              </span>
+            ) : points.length > 0 ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/95 px-3 py-1.5 text-xs font-bold text-brand shadow-sm backdrop-blur-xs">
+                <MapPin size={14} className="text-brand shrink-0" />
+                <span>{points.length} salon có vị trí trên bản đồ</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm backdrop-blur-xs">
+                <Info size={14} className="text-amber-600 shrink-0" />
+                <span className="truncate">Hiển thị khu vực TP.HCM</span>
+              </span>
+            )}
+          </div>
 
           <button
             type="button"
             onClick={handleRecenter}
-            className="flex items-center gap-1 rounded-full border border-gray-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-xs transition hover:bg-gray-100"
+            className="pointer-events-auto flex items-center gap-1 rounded-full border border-gray-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-xs transition hover:bg-gray-100 shrink-0"
             title="Căn chỉnh lại khung nhìn bản đồ"
           >
             <Navigation size={13} className="text-gray-500" />
@@ -440,7 +447,16 @@ export function SalonSearchMap({
             rel="noopener noreferrer"
             className="underline hover:text-gray-600"
           >
-            OpenStreetMap contributors
+            OpenStreetMap
+          </a>{' '}
+          &copy;{' '}
+          <a
+            href="https://carto.com/attributions"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-gray-600"
+          >
+            CARTO
           </a>
         </span>
       </div>

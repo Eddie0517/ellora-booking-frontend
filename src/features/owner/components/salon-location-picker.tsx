@@ -215,13 +215,17 @@ export function SalonLocationPicker({
     const map = L.map(mapContainerRef.current, {
       center: initialCenter,
       zoom: value && isValidCoords(value) ? 16 : 13,
-      scrollWheelZoom: false,
+      scrollWheelZoom: true,
+      zoomControl: false,
     })
     mapInstanceRef.current = map
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+    L.control.zoom({ position: 'bottomright' }).addTo(map)
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 20,
+      subdomains: 'abcd',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
     }).addTo(map)
 
     const icon = createGooglePinIcon()
@@ -442,14 +446,23 @@ export function SalonLocationPicker({
       <div className="flex items-center justify-between text-[11px] text-gray-400">
         <span>Kéo ghim hoặc chạm vào bản đồ để tinh chỉnh vị trí chính xác.</span>
         <span>
-          Bản đồ OpenStreetMap &copy;{' '}
+          Bản đồ &copy;{' '}
           <a
             href="https://www.openstreetmap.org/copyright"
             target="_blank"
             rel="noopener noreferrer"
             className="underline hover:text-gray-600"
           >
-            OpenStreetMap contributors
+            OpenStreetMap
+          </a>{' '}
+          &copy;{' '}
+          <a
+            href="https://carto.com/attributions"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-gray-600"
+          >
+            CARTO
           </a>
         </span>
       </div>

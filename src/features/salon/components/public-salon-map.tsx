@@ -29,13 +29,17 @@ export function PublicSalonMap({ coordinates, salonName, className = '' }: Publi
       const map = L.map(mapContainerRef.current, {
         center: [coordinates.lat, coordinates.lng],
         zoom: 16,
-        scrollWheelZoom: false,
+        scrollWheelZoom: true,
+        zoomControl: false,
       })
       mapInstanceRef.current = map
 
-      const tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+      L.control.zoom({ position: 'bottomright' }).addTo(map)
+
+      const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
       })
       tileLayer.on('tileerror', () => setError(true))
       tileLayer.addTo(map)
@@ -157,14 +161,23 @@ export function PublicSalonMap({ coordinates, salonName, className = '' }: Publi
         )}
       </div>
       <p className="text-[11px] text-gray-400">
-        Dữ liệu bản đồ &copy;{' '}
+        Bản đồ &copy;{' '}
         <a
           href="https://www.openstreetmap.org/copyright"
           target="_blank"
           rel="noopener noreferrer"
           className="underline hover:text-gray-600"
         >
-          OpenStreetMap contributors
+          OpenStreetMap
+        </a>{' '}
+        &copy;{' '}
+        <a
+          href="https://carto.com/attributions"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-gray-600"
+        >
+          CARTO
         </a>
       </p>
     </div>
