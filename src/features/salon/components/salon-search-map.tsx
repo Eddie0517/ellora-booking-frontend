@@ -44,7 +44,7 @@ export function SalonSearchMap({
     if (!mapInstanceRef.current) return
 
     if (userLocation && Number.isFinite(userLocation.lat) && Number.isFinite(userLocation.lng)) {
-      const radiusBounds = L.circle([userLocation.lat, userLocation.lng], { radius: 60000 }).getBounds()
+      const radiusBounds = L.circle([userLocation.lat, userLocation.lng], { radius: 30000 }).getBounds()
       if (points.length > 0) {
         let nearest = points[0]
         let minD = calculateDistanceKm(userLocation.lat, userLocation.lng, points[0].coordinates!.lat, points[0].coordinates!.lng)
@@ -324,9 +324,9 @@ export function SalonSearchMap({
           `)
           .addTo(map)
 
-        // 60 km radius search area bounds around user location
+        // 30 km radius search area bounds around user location
         const radiusCircle = L.circle([userLocation.lat, userLocation.lng], {
-          radius: 60000,
+          radius: 30000,
           color: '#0284c7',
           weight: 1.5,
           dashArray: '6, 8',
