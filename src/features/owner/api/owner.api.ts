@@ -56,6 +56,14 @@ export const ownerApi = {
     return typeof raw === 'string' ? raw : (raw as { url: string }).url
   },
 
+  async resolveMapsUrl(url: string): Promise<{ latitude: number; longitude: number; resolvedUrl?: string }> {
+    const response = await api.post<{ latitude: number; longitude: number; resolvedUrl?: string }>(
+      OWNER_ENDPOINTS.resolveMapsUrl,
+      { url }
+    )
+    return unwrap<{ latitude: number; longitude: number; resolvedUrl?: string }>(response.data)
+  },
+
   async salon(): Promise<OwnerSalon> {
     const response = await api.get<APIResponse<OwnerSalonDto> | OwnerSalonDto>(OWNER_ENDPOINTS.salon)
     return ownerSalonMapper.toModel(unwrap<OwnerSalonDto>(response.data))
