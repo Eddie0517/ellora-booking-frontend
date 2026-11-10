@@ -325,7 +325,7 @@ export function OwnerLayout() {
     <div className="min-h-screen bg-slate-50 text-gray-900 lg:flex">
       {/* Mobile Top Bar */}
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200/80 bg-white/95 px-4 backdrop-blur-md lg:hidden">
-        <Link to="/owner/dashboard" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition" title="Quay về trang chủ Ellora">
           <img src="/ellora-logoHeader.png" alt="Ellora" className="h-7 w-auto object-contain" />
           <span className="rounded-md bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-brand">Salon</span>
         </Link>
@@ -367,7 +367,7 @@ export function OwnerLayout() {
         <div className="flex flex-col flex-1 overflow-y-auto no-scrollbar">
           {/* Brand Header */}
           <div className="flex items-center justify-between border-b border-slate-100 p-5">
-            <Link to="/owner/dashboard" className="flex items-center gap-2.5">
+            <Link to="/" className="flex items-center gap-2.5 hover:opacity-90 transition" title="Quay về trang chủ Ellora">
               <img src="/ellora-logoHeader.png" alt="Ellora" className="h-8 w-auto object-contain" />
               <span className="rounded-md bg-rose-50 border border-pink-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand">
                 Chủ salon

@@ -62,7 +62,7 @@ export function ForBusinessPage() {
       return (
         <div className="mx-auto max-w-4xl px-4 py-24 text-center">
           <RefreshCw size={28} className="mx-auto animate-spin text-brand" />
-          <p className="mt-4 text-sm font-medium text-gray-500">Đang tải hồ sơ hợp đồng đối tác...</p>
+          <p className="mt-4 text-sm font-medium text-gray-500">Đang tải đơn đăng ký & hồ sơ đối tác...</p>
         </div>
       )
     }
