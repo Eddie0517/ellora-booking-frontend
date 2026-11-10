@@ -120,16 +120,6 @@ export function PartnerContractView({ salon, user }: PartnerContractViewProps) {
             <p className="text-emerald-800">
               Salon <strong>{salon.name}</strong> đã hoàn tất ký kết hợp đồng và sẵn sàng đón tiếp khách hàng. Tiệm của bạn đã xuất hiện trên bản đồ tìm kiếm và mở tính năng đặt lịch trực tuyến 24/7.
             </p>
-            <div className="pt-2">
-              <Link
-                to={`/salons/${salon.id}`}
-                target="_blank"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 underline hover:text-emerald-950"
-              >
-                <span>Xem trang công khai của Salon trên ứng dụng khách hàng</span>
-                <ExternalLink size={12} />
-              </Link>
-            </div>
           </div>
         </div>
       )}
