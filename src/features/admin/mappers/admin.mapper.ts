@@ -103,6 +103,11 @@ export class PendingSalonMapper extends BaseMapper<PendingSalonDto, PendingSalon
       description: safeString(pickField(dto, ['description'])),
       ownerName: safeString(pickField(dto, ['ownerName'])),
       status: safeString(pickField(dto, ['status'])),
+      contractUrl: safeString(pickField(dto, ['contractUrl'])) || null,
+      contractFileName: safeString(pickField(dto, ['contractFileName'])) || null,
+      contractFileType: safeString(pickField(dto, ['contractFileType'])) || null,
+      contractUploadedAt: safeString(pickField(dto, ['contractUploadedAt'])) || null,
+      isOverdue: Boolean(pickField(dto, ['isOverdue'])),
     }
   }
 }

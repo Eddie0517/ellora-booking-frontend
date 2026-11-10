@@ -1,4 +1,14 @@
-export interface PlanDto { tier?: string | null; displayName?: string | null; badgeLabel?: string | null; monthlyPrice?: number | string | null; currency?: string | null; enabled?: boolean | null; registrationAvailable?: boolean | null }
+export interface PlanDto {
+  tier?: string | null
+  displayName?: string | null
+  badgeLabel?: string | null
+  monthlyPrice?: number | string | null
+  currency?: string | null
+  enabled?: boolean | null
+  registrationAvailable?: boolean | null
+  description?: string | null
+  features?: string[] | null
+}
 export interface SubscriptionRequestDto {
   id?: number | string | null; salonId?: number | string | null; salonName?: string | null; tier?: string | null
   quotedPrice?: number | string | null; status?: string | null; createdAt?: string | null; reviewedAt?: string | null
@@ -9,5 +19,10 @@ export interface SubscriptionRequestDto {
 }
 export interface OwnerSubscriptionDto { salonId?: number | string | null; effectiveTier?: string | null; badgeLabel?: string | null; startsAt?: string | null; expiresAt?: string | null; pendingRequest?: SubscriptionRequestDto | null }
 export interface CreateSubscriptionDto { tier: 'STANDARD' | 'VIP'; expectedPrice: number }
-export interface SavePlanDto { monthlyPrice: number | null; enabled: boolean }
+export interface SavePlanDto {
+  monthlyPrice: number | null
+  enabled: boolean
+  description?: string | null
+  features?: string[] | null
+}
 export interface DecideSubscriptionDto { status: 'APPROVED' | 'REJECTED'; note?: string }

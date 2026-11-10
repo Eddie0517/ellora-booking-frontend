@@ -18,6 +18,7 @@ import {
   useSalonReviews,
   useSalonServices,
 } from '../queries/salon.queries'
+import { PublicSalonMap } from './public-salon-map'
 
 const dayNames: Record<string, string> = {
   MONDAY: 'Thứ Hai',
@@ -234,9 +235,10 @@ export function SalonDetailPage() {
 
   const item = salon.data
   const address = [...new Set([item.address, item.district, item.city].filter(Boolean))].join(', ')
-  const destination = item.coordinates ? `${item.coordinates.lat},${item.coordinates.lng}` : address
-  const directionsUrl = destination
-    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
+  const directionsUrl = item.coordinates
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${item.coordinates.lat},${item.coordinates.lng}`)}`
+    : address.trim()
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${item.name} ${address}`)}`
     : null
 
     return (
@@ -449,16 +451,12 @@ export function SalonDetailPage() {
                 )}
               </div>
 
-              {item.coordinates && (
-                <div className="overflow-hidden rounded-xl border border-gray-100 mb-4">
-                  <iframe
-                    title={`Bản đồ ${item.name}`}
-                    src={`https://maps.google.com/maps?q=${item.coordinates.lat},${item.coordinates.lng}&z=15&output=embed`}
-                    loading="lazy"
-                    className="h-56 w-full border-0"
-                  />
-                </div>
-              )}
+              <div className="mb-4">
+                <PublicSalonMap
+                  coordinates={item.coordinates}
+                  salonName={item.name}
+                />
+              </div>
 
               <p className="text-xs text-gray-600 leading-relaxed">
                 <strong className="text-gray-900">Địa chỉ:</strong> {address}

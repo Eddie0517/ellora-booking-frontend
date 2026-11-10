@@ -1,6 +1,7 @@
 export const OWNER_ENDPOINTS = {
   media: '/media/upload',
   salon: '/owner/salon',
+  resolveMapsUrl: '/owner/salon/resolve-maps-url',
   salonChange: '/owner/salon/change-request',
   summary: '/owner/dashboard',
   services: '/owner/services',

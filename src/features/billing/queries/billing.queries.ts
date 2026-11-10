@@ -6,6 +6,7 @@ export const BILLING_QUERY_KEYS = {
   config: ['billing', 'config'] as const,
   statements: (month: string, page: number) => ['billing', 'statements', month, page] as const,
   ownerBill: (month: string) => ['billing', 'owner', month] as const,
+  ownerStatus: ['billing', 'owner', 'status'] as const,
 }
 
 export const useBillingConfig = () =>
@@ -56,3 +57,27 @@ export const useOwnerBill = (month: string) =>
     queryFn: () => billingApi.getOwnerBill(month),
     enabled: !!month,
   })
+
+export const useBillingStatus = () =>
+  useQuery({
+    queryKey: BILLING_QUERY_KEYS.ownerStatus,
+    queryFn: () => billingApi.getBillingStatus(),
+    staleTime: 30000,
+    refetchOnWindowFocus: true,
+  })
+
+export const usePreparePayment = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (month: string) => billingApi.preparePayment(month),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: BILLING_QUERY_KEYS.all }),
+  })
+}
+
+export const useSyncPayment = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (month: string) => billingApi.syncPayment(month),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: BILLING_QUERY_KEYS.all }),
+  })
+}

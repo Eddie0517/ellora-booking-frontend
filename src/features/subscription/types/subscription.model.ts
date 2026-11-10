@@ -1,5 +1,15 @@
 export type Tier = 'STANDARD' | 'VIP'
-export interface Plan { tier: Tier; displayName: string; badgeLabel: string; monthlyPrice: number | null; currency: string; enabled: boolean; registrationAvailable: boolean }
+export interface Plan {
+  tier: Tier
+  displayName: string
+  badgeLabel: string
+  monthlyPrice: number | null
+  currency: string
+  enabled: boolean
+  registrationAvailable: boolean
+  description: string
+  features: string[]
+}
 export interface SubscriptionRequest {
   id: string; salonId: string; salonName: string; tier: Tier; quotedPrice: number; status: string
   createdAt: string; reviewedAt: string; reviewNote: string; startsAt: string; expiresAt: string

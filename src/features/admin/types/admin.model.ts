@@ -31,6 +31,11 @@ export interface PendingSalon {
   description: string
   ownerName: string
   status: string
+  contractUrl?: string | null
+  contractFileName?: string | null
+  contractFileType?: string | null
+  contractUploadedAt?: string | null
+  isOverdue?: boolean
 }
 export interface SupportContact {
   email: string

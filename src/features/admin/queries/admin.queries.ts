@@ -61,7 +61,8 @@ export const usePendingSalon = (id: string) =>
 export const useDecideSalon = () => {
   const client = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, action }: { id: string; action: 'approve' | 'reject' }) => adminApi.decideSalon(id, action),
+    mutationFn: ({ id, action, contractFile }: { id: string; action: 'approve' | 'reject'; contractFile?: File }) =>
+      adminApi.decideSalon(id, action, contractFile),
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ADMIN_SALON_KEYS.all })
       client.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.summary })

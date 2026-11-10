@@ -18,8 +18,18 @@ export interface PlatformBill {
   status: 'NO_FEE' | 'PAID' | 'OVERDUE' | 'UNPAID'
   transferContent: string
   qrUrl: string | null
+  payosCheckoutUrl?: string | null
+  payosQrCode?: string | null
+  payosOrderCode?: number | null
   paidAt?: string | null
   remindedAt?: string | null
+}
+
+export interface BillingStatus {
+  isOverdueLocked: boolean
+  salonId: string
+  salonName: string
+  overdueMonths: string[]
 }
 
 export const billStatusMap: Record<PlatformBill['status'], { label: string; color: string }> = {

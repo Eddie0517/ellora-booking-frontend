@@ -13,12 +13,14 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
+  ExternalLink,
 } from 'lucide-react'
 import { useOwnerSalon, useSaveOwnerSalon, useUploadOwnerImage } from '../queries/owner.queries'
 import { SuspendedSalonBadge } from '@/features/salon/components/suspended-salon-badge'
 import { apiError } from '@/lib/axios'
 import { toast } from 'sonner'
 import type { SaveSalon } from '../types/owner.model'
+import { SalonLocationPicker } from './salon-location-picker'
 
 export function OwnerProfilePage() {
   const salon = useOwnerSalon()
@@ -60,6 +62,8 @@ export function OwnerProfilePage() {
     phone: salon.data.phone,
     email: salon.data.email,
     logoUrl: salon.data.logoUrl,
+    latitude: salon.data.latitude,
+    longitude: salon.data.longitude,
   }
 
   const isDirty = edited !== null
@@ -172,6 +176,53 @@ export function OwnerProfilePage() {
             <span>Thiết kế khung ảnh Bento (5 vị trí)</span>
             <span>&rarr;</span>
           </Link>
+        </div>
+      </div>
+
+      {/* Contract Section */}
+      <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 shadow-xs shadow-pink-950/5">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <div className="flex items-center gap-2">
+            <FileText size={18} className="text-brand" />
+            <h3 className="text-sm font-bold text-gray-900">Hợp đồng hợp tác đối tác</h3>
+          </div>
+          {salon.data.contractUrl ? (
+            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700">
+              Đã ký kết & lưu trữ
+            </span>
+          ) : (
+            <span className="rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700">
+              Đang hoàn thiện hồ sơ
+            </span>
+          )}
+        </div>
+
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-gray-800">
+              {salon.data.contractFileName || 'Hợp đồng nguyên tắc cung cấp dịch vụ sàn Ellora'}
+            </p>
+            <p className="text-[11px] text-gray-400">
+              {salon.data.contractUploadedAt
+                ? `Thời gian tải lên: ${new Date(salon.data.contractUploadedAt).toLocaleDateString('vi-VN')} lúc ${new Date(salon.data.contractUploadedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
+                : 'Hợp đồng được quản trị viên thẩm định và số hóa trực tiếp khi duyệt cơ sở.'}
+            </p>
+          </div>
+
+          {salon.data.contractUrl ? (
+            <a
+              href={salon.data.contractUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition shadow-xs shrink-0"
+            >
+              <FileText size={14} />
+              <span>Xem & Tải file hợp đồng</span>
+              <ExternalLink size={12} />
+            </a>
+          ) : (
+            <div className="text-xs text-gray-400 italic">Liên hệ Admin để bổ sung file nếu cần</div>
+          )}
         </div>
       </div>
 
@@ -316,6 +367,24 @@ export function OwnerProfilePage() {
               onChange={(e) => setEdited({ ...d, city: e.target.value })}
               placeholder="TP. Hồ Chí Minh, Hà Nội..."
               className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-xs text-gray-900 outline-none transition focus:border-brand focus:ring-1 focus:ring-brand placeholder:text-gray-400 shadow-2xs"
+            />
+          </div>
+
+          {/* Map Location Picker */}
+          <div className="sm:col-span-2 pt-2">
+            <SalonLocationPicker
+              value={
+                d.latitude != null && d.longitude != null
+                  ? { lat: d.latitude, lng: d.longitude }
+                  : null
+              }
+              onChange={(coords) =>
+                setEdited({
+                  ...d,
+                  latitude: coords.lat,
+                  longitude: coords.lng,
+                })
+              }
             />
           </div>
         </div>

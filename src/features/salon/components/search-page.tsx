@@ -1,9 +1,13 @@
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, SlidersHorizontal, SearchX, Sparkles } from 'lucide-react'
+import { Navigate, useSearchParams } from 'react-router-dom'
+import { ChevronLeft, ChevronRight, SlidersHorizontal, SearchX, Sparkles, Map as MapIcon, LayoutGrid } from 'lucide-react'
 import { SalonCard } from './salon-card'
 import { SalonSearchForm } from './salon-search-form'
+import { SalonSearchMap, type UserLocation } from './salon-search-map'
+import { UserLocationSearchBox } from './user-location-search-box'
+import type { Salon } from '../types/salon.model'
 import { useSalons } from '../queries/salon.queries'
+import { useAuthStore } from '@/store/auth.store'
 
 const quickFilters = [
   { label: 'Tất cả', value: '' },
@@ -14,6 +18,11 @@ const quickFilters = [
 ]
 
 export function SearchPage() {
+  const user = useAuthStore((state) => state.user)
+  if (user?.role === 'SALON_OWNER') {
+    return <Navigate to="/owner/dashboard" replace />
+  }
+
   const [params, setParams] = useSearchParams()
   const page = Math.max(0, Number(params.get('page') ?? 0) || 0)
   const keyword = params.get('keyword') ?? ''
@@ -27,6 +36,10 @@ export function SearchPage() {
   const longitude = lngStr ? Number(lngStr) : undefined
   const radiusKm = params.get('radiusKm') ? Number(params.get('radiusKm')) : undefined
   const [activeFilter, setActiveFilter] = useState(keyword)
+  const [showMap, setShowMap] = useState(true)
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [nearestSalon, setNearestSalon] = useState<Salon | null>(null)
+  const [nearestDistanceKm, setNearestDistanceKm] = useState<number | null>(null)
 
   const salons = useSalons({
     keyword,
@@ -117,7 +130,7 @@ export function SearchPage() {
         </div>
 
         {/* Results Bar */}
-        <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4">
           <p className="text-sm text-gray-600">
             {salons.isPending ? (
               'Đang tải danh sách salon...'
@@ -129,89 +142,130 @@ export function SearchPage() {
             ) : null}
           </p>
 
-          <span className="text-xs text-gray-400">
-            Trang {page + 1} / {totalPages}
-          </span>
-        </div>
-
-        {/* Content State */}
-        {salons.isPending ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-              <div
-                key={n}
-                className="h-80 animate-pulse rounded-2xl border border-gray-100 bg-gray-50"
-              />
-            ))}
-          </div>
-        ) : salons.isError ? (
-          <div className="rounded-2xl border border-red-100 bg-red-50 p-8 text-center text-sm text-red-600">
-            Không tải được danh sách salon. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau.
-          </div>
-        ) : salons.data && salons.data.content.length > 0 ? (
-          <>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {salons.data.content.map((salon) => (
-                <SalonCard key={salon.id} salon={salon} />
-              ))}
-            </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <nav
-                className="mt-12 flex items-center justify-center gap-3"
-                aria-label="Phân trang danh sách salon"
-              >
-                <button
-                  type="button"
-                  disabled={page === 0}
-                  onClick={() => move(-1)}
-                  className="flex items-center gap-1 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
-                >
-                  <ChevronLeft size={16} />
-                  <span>Trang trước</span>
-                </button>
-
-                <div className="flex items-center gap-1 px-2 text-xs font-semibold text-gray-800">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white">
-                    {page + 1}
-                  </span>
-                  <span className="text-gray-400">/ {totalPages}</span>
-                </div>
-
-                <button
-                  type="button"
-                  disabled={salons.data.last}
-                  onClick={() => move(1)}
-                  className="flex items-center gap-1 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
-                >
-                  <span>Trang sau</span>
-                  <ChevronRight size={16} />
-                </button>
-              </nav>
-            )}
-          </>
-        ) : (
-          /* Empty State */
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-gray-50/50 py-16 px-4 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-brand">
-              <SearchX size={26} />
-            </div>
-            <h3 className="mt-4 text-lg font-bold text-gray-900">
-              Chưa tìm thấy salon nào phù hợp
-            </h3>
-            <p className="mt-2 max-w-sm text-sm text-gray-500">
-              Hãy thử tìm kiếm với từ khóa khác, điều chỉnh bộ lọc hoặc xóa các tiêu chí tìm kiếm.
-            </p>
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={resetFilters}
-              className="mt-6 rounded-full bg-brand px-5 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-brand-dark active:scale-[0.98]"
+              onClick={() => setShowMap(!showMap)}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                showMap
+                  ? 'border-brand bg-brand text-white shadow-2xs'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-pink-200 hover:bg-rose-50/50 hover:text-brand'
+              }`}
             >
-              Xóa bộ lọc & xem tất cả salon
+              {showMap ? <LayoutGrid size={13} /> : <MapIcon size={13} />}
+              <span>{showMap ? 'Ẩn bản đồ' : 'Xem bản đồ'}</span>
             </button>
+
+            <span className="text-xs text-gray-400">
+              Trang {page + 1} / {totalPages}
+            </span>
           </div>
-        )}
+        </div>
+
+        {/* Main Content Area: Split layout with sticky map on right */}
+        <div className={showMap ? "grid grid-cols-1 lg:grid-cols-12 gap-8 items-start" : ""}>
+          {/* Left Column: Salon List */}
+          <div className={showMap ? "lg:col-span-7 xl:col-span-7" : ""}>
+            {salons.isPending ? (
+              <div className={`grid gap-6 ${showMap ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+                {[1, 2, 3, 4, 5, 6].map((n) => (
+                  <div
+                    key={n}
+                    className="h-80 animate-pulse rounded-2xl border border-gray-100 bg-gray-50"
+                  />
+                ))}
+              </div>
+            ) : salons.isError ? (
+              <div className="rounded-2xl border border-red-100 bg-red-50 p-8 text-center text-sm text-red-600">
+                Không tải được danh sách salon. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau.
+              </div>
+            ) : salons.data && salons.data.content.length > 0 ? (
+              <>
+                <div className={`grid gap-6 ${showMap ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+                  {salons.data.content.map((salon) => (
+                    <SalonCard key={salon.id} salon={salon} />
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <nav
+                    className="mt-12 flex items-center justify-center gap-3"
+                    aria-label="Phân trang danh sách salon"
+                  >
+                    <button
+                      type="button"
+                      disabled={page === 0}
+                      onClick={() => move(-1)}
+                      className="flex items-center gap-1 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
+                    >
+                      <ChevronLeft size={16} />
+                      <span>Trang trước</span>
+                    </button>
+
+                    <div className="flex items-center gap-1 px-2 text-xs font-semibold text-gray-800">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white">
+                        {page + 1}
+                      </span>
+                      <span className="text-gray-400">/ {totalPages}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={salons.data.last}
+                      onClick={() => move(1)}
+                      className="flex items-center gap-1 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
+                    >
+                      <span>Trang sau</span>
+                      <ChevronRight size={16} />
+                    </button>
+                  </nav>
+                )}
+              </>
+            ) : (
+              /* Empty State */
+              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-gray-50/50 py-16 px-4 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-brand">
+                  <SearchX size={26} />
+                </div>
+                <h3 className="mt-4 text-lg font-bold text-gray-900">
+                  Chưa tìm thấy salon nào phù hợp
+                </h3>
+                <p className="mt-2 max-w-sm text-sm text-gray-500">
+                  Hãy thử tìm kiếm với từ khóa khác, điều chỉnh bộ lọc hoặc xóa các tiêu chí tìm kiếm.
+                </p>
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="mt-6 rounded-full bg-brand px-5 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-brand-dark active:scale-[0.98]"
+                >
+                  Xóa bộ lọc & xem tất cả salon
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Compact Sticky Overview Map & User Location Search */}
+          {showMap && (
+            <div className="order-first lg:order-last lg:col-span-5 xl:col-span-5 lg:sticky lg:top-24 space-y-3">
+              <SalonSearchMap
+                salons={salons.data?.content ?? []}
+                userLocation={userLocation}
+                onNearestSalonChange={(salon, dist) => {
+                  setNearestSalon(salon)
+                  setNearestDistanceKm(dist)
+                }}
+                heightClassName="h-[360px] lg:h-[calc(100vh-270px)] lg:max-h-[500px]"
+              />
+              <UserLocationSearchBox
+                userLocation={userLocation}
+                onLocationSelect={(loc) => setUserLocation(loc)}
+                nearestSalon={nearestSalon}
+                nearestDistanceKm={nearestDistanceKm}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

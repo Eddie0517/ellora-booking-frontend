@@ -8,7 +8,12 @@ import {
   ArrowRight,
   ShieldCheck,
   TrendingUp,
+  RefreshCw,
+  AlertCircle,
 } from 'lucide-react'
+import { useAuthStore } from '@/store/auth.store'
+import { useOwnerSalon } from '@/features/owner/queries/owner.queries'
+import { PartnerContractView } from './partner-contract-view'
 
 const benefits = [
   {
@@ -48,6 +53,41 @@ const reasons = [
 ]
 
 export function ForBusinessPage() {
+  const user = useAuthStore((state) => state.user)
+  const isSalonOwner = user?.role === 'SALON_OWNER'
+  const salon = useOwnerSalon()
+
+  if (isSalonOwner) {
+    if (salon.isPending) {
+      return (
+        <div className="mx-auto max-w-4xl px-4 py-24 text-center">
+          <RefreshCw size={28} className="mx-auto animate-spin text-brand" />
+          <p className="mt-4 text-sm font-medium text-gray-500">Đang tải đơn đăng ký & hồ sơ đối tác...</p>
+        </div>
+      )
+    }
+    if (salon.data) {
+      return <PartnerContractView salon={salon.data} user={user!} />
+    }
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-24 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 text-rose-500">
+          <AlertCircle size={32} />
+        </div>
+        <h2 className="mt-4 text-lg font-bold text-gray-900">Chưa tìm thấy thông tin cơ sở salon</h2>
+        <p className="mt-2 text-sm text-gray-500">
+          Tài khoản của bạn đã có vai trò chủ salon nhưng chưa có cơ sở nào được liên kết hoặc đang chờ duyệt.
+        </p>
+        <Link
+          to="/business-registration"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-brand-dark"
+        >
+          Đăng ký cơ sở mới
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-white">
       {/* Hero Section */}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   Store,
   Phone,
@@ -11,6 +11,10 @@ import {
   Clock,
   ShieldCheck,
   Ban,
+  FileText,
+  UploadCloud,
+  ExternalLink,
+  AlertCircle,
 } from 'lucide-react'
 import { useDecideSalon, usePendingSalons } from '../queries/admin.queries'
 import { SuspendedSalonBadge } from '@/features/salon/components/suspended-salon-badge'
@@ -29,19 +33,50 @@ export function AdminApprovalsPage() {
   const [statusFilter, setStatusFilter] = useState('PENDING_APPROVAL')
   const [selectedId, setSelectedId] = useState('')
   const [message, setMessage] = useState('')
+  const [contractFile, setContractFile] = useState<File | null>(null)
+  const [contractError, setContractError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const pending = usePendingSalons(page, statusFilter)
   const decide = useDecideSalon()
 
   const detail = pending.data?.content.find((item) => item.id === selectedId)
 
+  const handleSelectSalon = (id: string) => {
+    setSelectedId(id)
+    setContractFile(null)
+    setContractError(null)
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 15 * 1024 * 1024) {
+      setContractError('Dung lượng file tối đa là 15MB.')
+      return
+    }
+    const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp']
+    if (!validTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.pdf')) {
+      setContractError('Định dạng không hỗ trợ. Vui lòng tải file PDF hoặc hình ảnh (PNG, JPG).')
+      return
+    }
+    setContractFile(file)
+    setContractError(null)
+  }
+
   const handleAction = async (action: 'approve' | 'reject') => {
     if (!selectedId) return
     const isApprove = action === 'approve'
+
+    if (isApprove && !contractFile && !detail?.contractUrl) {
+      setContractError('Bắt buộc phải tải lên file hợp đồng (ảnh hoặc PDF) đã ký trước khi duyệt.')
+      return
+    }
+
     const ok = await confirm({
       title: isApprove ? 'Duyệt hồ sơ salon' : 'Từ chối / Đình chỉ salon',
       description: isApprove
-        ? 'Duyệt hồ sơ và cấp quyền hoạt động mở tiệm cho salon này?'
+        ? `Duyệt hồ sơ và cấp quyền hoạt động cho salon này${contractFile ? ` kèm hợp đồng "${contractFile.name}"` : ''}?`
         : 'Bạn có chắc chắn muốn từ chối hoặc đình chỉ quyền hoạt động của salon này?',
       confirmText: isApprove ? 'Duyệt salon' : 'Xác nhận đình chỉ',
       variant: isApprove ? 'default' : 'destructive',
@@ -49,12 +84,14 @@ export function AdminApprovalsPage() {
     if (!ok) return
 
     try {
-      await decide.mutateAsync({ id: selectedId, action })
+      await decide.mutateAsync({ id: selectedId, action, contractFile: contractFile || undefined })
       setSelectedId('')
+      setContractFile(null)
+      setContractError(null)
       setPage(0)
-      setMessage(isApprove ? 'Đã duyệt salon thành công!' : 'Đã cập nhật trạng thái từ chối/đình chỉ salon.')
+      setMessage(isApprove ? 'Đã duyệt salon và lưu hợp đồng thành công!' : 'Đã cập nhật trạng thái từ chối/đình chỉ salon.')
     } catch {
-      setMessage('Không xử lý được đăng ký. Vui lòng thử lại.')
+      setMessage('Không xử lý được đăng ký. Vui lòng kiểm tra lại file hợp đồng và thử lại.')
     }
   }
 
@@ -172,7 +209,7 @@ export function AdminApprovalsPage() {
                   return (
                     <article
                       key={salon.id}
-                      onClick={() => setSelectedId(salon.id)}
+                      onClick={() => handleSelectSalon(salon.id)}
                       className={`cursor-pointer rounded-xl border p-4 transition-all duration-200 ${
                         isSelected
                           ? 'border-brand bg-rose-50/40 shadow-xs'
@@ -275,6 +312,96 @@ export function AdminApprovalsPage() {
                   </div>
                 </div>
 
+                {/* Contract Section */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-xs font-bold text-gray-900">
+                      <FileText size={15} className="text-brand" />
+                      Hợp đồng đối tác (Bắt buộc khi duyệt)
+                    </span>
+                    {detail.contractUrl && (
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                        Đã có hợp đồng
+                      </span>
+                    )}
+                  </div>
+
+                  {detail.contractUrl && (
+                    <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-white p-2.5 text-xs">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <FileText size={16} className="text-emerald-600 shrink-0" />
+                        <div className="truncate">
+                          <p className="font-semibold text-gray-800 truncate">{detail.contractFileName || 'Hop-dong-salon.pdf'}</p>
+                          <p className="text-[10px] text-gray-400">
+                            Tải lên: {detail.contractUploadedAt ? new Date(detail.contractUploadedAt).toLocaleDateString('vi-VN') : 'Đã lưu'}
+                          </p>
+                        </div>
+                      </div>
+                      <a
+                        href={detail.contractUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline shrink-0 ml-2"
+                      >
+                        <span>Xem file</span>
+                        <ExternalLink size={12} />
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Upload Input */}
+                  <div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,image/png,image/jpeg,image/jpg,image/webp"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+
+                    {contractFile ? (
+                      <div className="flex items-center justify-between rounded-lg border border-pink-200 bg-pink-50/50 p-2.5 text-xs">
+                        <div className="flex items-center gap-2 truncate">
+                          <FileText size={16} className="text-brand shrink-0" />
+                          <div className="truncate">
+                            <p className="font-semibold text-gray-900 truncate">{contractFile.name}</p>
+                            <p className="text-[10px] text-gray-500">{(contractFile.size / 1024).toFixed(1)} KB</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setContractFile(null)
+                            if (fileInputRef.current) fileInputRef.current.value = ''
+                          }}
+                          className="text-xs font-semibold text-red-500 hover:text-red-700 ml-2"
+                        >
+                          Xóa
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-slate-300 bg-white p-3 text-xs text-gray-600 hover:border-brand hover:bg-rose-50/30 transition"
+                      >
+                        <UploadCloud size={20} className="text-gray-400" />
+                        <span className="font-semibold text-gray-700">
+                          {detail.contractUrl ? 'Tải lên hợp đồng mới thay thế' : 'Chọn file hợp đồng (PDF hoặc ảnh)'}
+                        </span>
+                        <span className="text-[10px] text-gray-400">PDF, PNG, JPG (tối đa 15MB)</span>
+                      </button>
+                    )}
+
+                    {contractError && (
+                      <p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-red-600">
+                        <AlertCircle size={12} />
+                        {contractError}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 {/* Status Notice & Actions */}
                 {detail.status === 'ACTIVE' && (
                   <div className="rounded-xl bg-emerald-50/70 border border-emerald-200 p-3 text-xs text-emerald-800 space-y-3">
@@ -316,12 +443,12 @@ export function AdminApprovalsPage() {
                   <div className="flex items-center gap-3 pt-2">
                     <button
                       type="button"
-                      disabled={decide.isPending}
+                      disabled={decide.isPending || (!contractFile && !detail.contractUrl)}
                       onClick={() => void handleAction('approve')}
                       className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition disabled:opacity-50"
                     >
                       <Check size={16} />
-                      <span>Duyệt hồ sơ</span>
+                      <span>Duyệt hồ sơ & Lưu hợp đồng</span>
                     </button>
 
                     <button

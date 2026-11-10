@@ -1,5 +1,6 @@
 export const SUBSCRIPTION_ENDPOINTS = {
   plans: '/salon-plans', owner: '/owner/subscription', ownerRequests: '/owner/subscription/requests',
+  cancelRequest: (id: string) => `/owner/subscription/requests/${encodeURIComponent(id)}`,
   prepare: (id: string) => `/owner/subscription/requests/${encodeURIComponent(id)}/prepare-payment`,
   syncOwnerPayment: (id: string) => `/owner/subscription/requests/${encodeURIComponent(id)}/sync-payment`,
   syncAdminPayment: (id: string) => `/admin/subscription-requests/${encodeURIComponent(id)}/sync-payment`,
