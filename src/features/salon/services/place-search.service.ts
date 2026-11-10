@@ -66,8 +66,8 @@ export const placeSearchService = {
       return [
         {
           id: `coord-${localCoords.lat}-${localCoords.lng}`,
-          name: `${localCoords.lat}, ${localCoords.lng}`,
-          address: 'Tọa độ trích xuất trực tiếp',
+          name: 'Vị trí đã chọn',
+          address: 'Vị trí từ Google Maps',
           lat: localCoords.lat,
           lng: localCoords.lng,
           source: 'coords',

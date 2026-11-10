@@ -156,14 +156,14 @@ export function PartnerContractView({ salon, user }: PartnerContractViewProps) {
               </p>
               <p className="sm:col-span-2 flex items-center gap-1.5">
                 <MapPin size={14} className="text-brand shrink-0" />
-                <strong>Tọa độ ghim bản đồ:</strong>{' '}
+                <strong>Vị trí trên bản đồ:</strong>{' '}
                 {salon.latitude != null && salon.longitude != null ? (
-                  <span className="font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                    {salon.latitude}, {salon.longitude}
+                  <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                    ✓ Đã thiết lập vị trí
                   </span>
                 ) : (
                   <span className="text-amber-600">
-                    Chưa cập nhật toạ độ (vui lòng vào trang Hồ sơ salon để ghim vị trí)
+                    Chưa thiết lập vị trí trên bản đồ (vui lòng vào trang Hồ sơ salon để ghim vị trí)
                   </span>
                 )}
               </p>
@@ -204,7 +204,7 @@ export function PartnerContractView({ salon, user }: PartnerContractViewProps) {
               ĐIỀU 3: QUYỀN VÀ TRÁCH NHIỆM CỦA BÊN B (SALON)
             </h4>
             <p className="text-justify text-gray-600 leading-relaxed">
-              3.1. Cập nhật chính xác, trung thực thông tin cơ sở (tên tiệm, địa chỉ, số hotline, ảnh đại diện, toạ độ bản đồ).
+              3.1. Cập nhật chính xác, trung thực thông tin cơ sở (tên tiệm, địa chỉ, số hotline, ảnh đại diện, vị trí trên bản đồ).
               <br />
               3.2. Chuẩn bị nhân sự và cơ sở vật chất sẵn sàng phục vụ khi khách hàng đến đúng giờ hẹn đã xác nhận.
               <br />
@@ -273,7 +273,7 @@ export function PartnerContractView({ salon, user }: PartnerContractViewProps) {
           className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline"
         >
           <MapPin size={13} />
-          <span>Cập nhật vị trí tọa độ tiệm</span>
+          <span>Cập nhật vị trí tiệm trên bản đồ</span>
         </Link>
         <span>•</span>
         <Link

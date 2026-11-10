@@ -163,7 +163,7 @@ export function SalonLocationPicker({
             lat: Number(pos.lat.toFixed(6)),
             lng: Number(pos.lng.toFixed(6)),
           }
-          setStatusSuccess(`✓ Đã kéo ghim tới vị trí: ${dragged.lat}, ${dragged.lng}`)
+          setStatusSuccess('✓ Đã kéo ghim tới vị trí mới')
           onChange(dragged)
         })
       }
@@ -174,14 +174,14 @@ export function SalonLocationPicker({
   const handleSelectPlace = (place: PlaceSuggestion) => {
     applyCoordinates(
       { lat: place.lat, lng: place.lng },
-      `✓ Đã định vị thành công: ${place.name} (${place.lat}, ${place.lng})`
+      `✓ Đã định vị thành công: ${place.name}`
     )
     setSearchInput(place.name)
     setSuggestions([])
     setIsDropdownOpen(false)
   }
 
-  // Handle manual Enter / click "Tìm & Đánh dấu" button (handles place names, Google Maps URLs, or coordinates)
+  // Handle manual Enter / click "Tìm & Đánh dấu" button (handles place names or Google Maps URLs)
   const handleSearchOrExtract = async () => {
     if (disabled) return
     const raw = searchInput.trim()
@@ -196,7 +196,7 @@ export function SalonLocationPicker({
       if (results.length > 0) {
         handleSelectPlace(results[0])
       } else {
-        setStatusError('Không tìm thấy địa điểm hoặc tọa độ phù hợp. Hãy thử tên cụ thể hơn hoặc dán link Google Maps chi tiết.')
+        setStatusError('Không tìm thấy địa điểm phù hợp. Hãy thử tên cụ thể hơn hoặc dán link Google Maps chi tiết.')
       }
     } catch (err: any) {
       setStatusError(err?.message || 'Lỗi tìm kiếm vị trí. Vui lòng thử lại.')
@@ -240,7 +240,7 @@ export function SalonLocationPicker({
           lat: Number(pos.lat.toFixed(6)),
           lng: Number(pos.lng.toFixed(6)),
         }
-        setStatusSuccess(`✓ Đã kéo ghim tới vị trí: ${selected.lat}, ${selected.lng}`)
+        setStatusSuccess('✓ Đã kéo ghim tới vị trí mới')
         onChange(selected)
       })
     }
@@ -251,7 +251,7 @@ export function SalonLocationPicker({
           lat: Number(e.latlng.lat.toFixed(6)),
           lng: Number(e.latlng.lng.toFixed(6)),
         }
-        setStatusSuccess(`✓ Đã chạm chọn vị trí: ${selected.lat}, ${selected.lng}`)
+        setStatusSuccess('✓ Đã chọn vị trí trên bản đồ')
         onChange(selected)
 
         if (markerRef.current) {
@@ -270,7 +270,7 @@ export function SalonLocationPicker({
               lat: Number(pos.lat.toFixed(6)),
               lng: Number(pos.lng.toFixed(6)),
             }
-            setStatusSuccess(`✓ Đã kéo ghim tới vị trí: ${dragged.lat}, ${dragged.lng}`)
+            setStatusSuccess('✓ Đã kéo ghim tới vị trí mới')
             onChange(dragged)
           })
         }
@@ -308,7 +308,7 @@ export function SalonLocationPicker({
         {value && isValidCoords(value) ? (
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
             <Check size={13} />
-            Đã chọn: {value.lat}, {value.lng}
+            Đã ghim vị trí tiệm
           </span>
         ) : (
           <span className="text-xs text-gray-400">Chưa chọn vị trí</span>
@@ -328,14 +328,9 @@ export function SalonLocationPicker({
       {/* Place Search & Google Maps Link Autocomplete Box */}
       {!disabled && (
         <div className="rounded-xl border border-rose-100 bg-gradient-to-r from-rose-50/50 via-white to-pink-50/30 p-3 sm:p-4 space-y-2.5 shadow-2xs">
-          <div className="flex flex-wrap items-center justify-between gap-1">
-            <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-              <Search size={14} className="text-brand" />
-              <span>Tìm địa điểm hoặc dán link Google Maps</span>
-            </span>
-            <span className="text-[11px] text-gray-400">
-              Nhập tên tiệm/địa danh (VD: Đại học FPT) hoặc link Google Maps
-            </span>
+          <div className="flex items-center gap-1.5">
+            <Search size={14} className="text-brand" />
+            <span className="text-xs font-bold text-gray-900">Tìm địa điểm hoặc dán link Google Maps</span>
           </div>
 
           <div ref={searchContainerRef} className="relative">

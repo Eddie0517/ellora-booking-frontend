@@ -319,7 +319,6 @@ export function SalonSearchMap({
             <div style="padding: 4px; font-family: inherit; font-size: 12px;">
               <div style="font-weight: 800; color: #0369a1; margin-bottom: 2px;">📍 Vị trí của bạn</div>
               <div style="color: #64748b; font-size: 11px;">${safeUserLabel}</div>
-              <div style="color: #94a3b8; font-size: 10px; margin-top: 4px;">Tọa độ: ${userLocation.lat}, ${userLocation.lng}</div>
             </div>
           `)
           .addTo(map)
@@ -409,7 +408,7 @@ export function SalonSearchMap({
           ) : (
             <span className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm backdrop-blur-xs">
               <Info size={14} className="text-amber-600" />
-              <span>Chưa có salon nào có tọa độ trong trang này (Hiển thị TP.HCM)</span>
+              <span>Chưa có salon nào có vị trí trên bản đồ trong trang này (Hiển thị TP.HCM)</span>
             </span>
           )}
 

@@ -110,7 +110,7 @@ export function UserLocationSearchBox({
       if (results.length > 0) {
         handleSelectSuggestion(results[0])
       } else {
-        setErrorMsg('Không tìm thấy địa điểm hoặc tọa độ phù hợp. Hãy thử tên cụ thể hơn (VD: Trường Đại học FPT, Landmark 81).')
+        setErrorMsg('Không tìm thấy địa điểm phù hợp. Hãy thử tên cụ thể hơn (VD: Trường Đại học FPT, Landmark 81).')
       }
     } catch {
       setErrorMsg('Lỗi tìm kiếm địa điểm. Vui lòng thử lại.')
@@ -191,7 +191,7 @@ export function UserLocationSearchBox({
                   handleManualSubmit()
                 }
               }}
-              placeholder="Nhập tên địa điểm (VD: Đại học FPT), dán link Google Maps hoặc tọa độ..."
+              placeholder="Nhập tên địa điểm (VD: Đại học FPT) hoặc dán link Google Maps..."
               className="w-full rounded-xl border border-sky-200 bg-white pl-9 pr-9 py-2.5 text-xs text-gray-900 placeholder:text-gray-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none shadow-2xs"
             />
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -273,7 +273,7 @@ export function UserLocationSearchBox({
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-100 text-sky-700">
               <CheckCircle2 size={13} />
             </span>
-            <span className="truncate">Vị trí của bạn: <strong className="text-gray-900">{userLocation.label || `${userLocation.lat}, ${userLocation.lng}`}</strong></span>
+            <span className="truncate">Vị trí của bạn: <strong className="text-gray-900">{userLocation.label || 'Vị trí đã chọn'}</strong></span>
           </div>
 
           {nearestSalon && nearestDistanceKm !== null ? (
