@@ -14,9 +14,19 @@ export const useSubscriptionMutation = () => {
   return {
     request: useMutation({ mutationFn: ({ tier, price }: { tier: Tier; price: number }) => subscriptionApi.request(tier, price), onSuccess: invalidate }),
     prepare: useMutation({ mutationFn: subscriptionApi.prepare, onSuccess: invalidate }),
+    cancelRequest: useMutation({ mutationFn: subscriptionApi.cancelRequest, onSuccess: invalidate }),
     syncOwnerPayment: useMutation({ mutationFn: subscriptionApi.syncOwnerPayment, onSuccess: invalidate }),
     syncAdminPayment: useMutation({ mutationFn: subscriptionApi.syncAdminPayment, onSuccess: invalidate }),
-    savePlan: useMutation({ mutationFn: ({ tier, price, enabled }: { tier: Tier; price: number | null; enabled: boolean }) => subscriptionApi.savePlan(tier, price, enabled), onSuccess: invalidate }),
+    savePlan: useMutation({
+      mutationFn: ({ tier, price, enabled, description, features }: {
+        tier: Tier
+        price: number | null
+        enabled: boolean
+        description?: string
+        features?: string[]
+      }) => subscriptionApi.savePlan(tier, price, enabled, description, features),
+      onSuccess: invalidate,
+    }),
     decide: useMutation({ mutationFn: ({ id, status, note }: { id: string; status: 'APPROVED' | 'REJECTED'; note: string }) => subscriptionApi.decide(id, status, note), onSuccess: invalidate }),
   }
 }

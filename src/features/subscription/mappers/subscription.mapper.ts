@@ -7,9 +7,25 @@ const safeTier = (value: unknown): Tier => value === 'VIP' ? 'VIP' : 'STANDARD'
 export class PlanMapper extends BaseMapper<PlanDto, Plan> {
   toModel(dto: PlanDto | null | undefined): Plan {
     const price = safeNumber(pickField(dto, ['monthlyPrice']), NaN)
-    return { tier: safeTier(pickField(dto, ['tier'])), displayName: safeString(pickField(dto, ['displayName'])), badgeLabel: safeString(pickField(dto, ['badgeLabel'])), monthlyPrice: Number.isFinite(price) ? price : null, currency: safeString(pickField(dto, ['currency']), 'VND'), enabled: pickField(dto, ['enabled']) === true, registrationAvailable: pickField(dto, ['registrationAvailable']) === true }
+    const rawFeatures = pickField(dto, ['features'])
+    const features: string[] = Array.isArray(rawFeatures)
+      ? rawFeatures.filter((f): f is string => typeof f === 'string' && f.trim().length > 0)
+      : []
+    return {
+      tier: safeTier(pickField(dto, ['tier'])),
+      displayName: safeString(pickField(dto, ['displayName'])),
+      badgeLabel: safeString(pickField(dto, ['badgeLabel'])),
+      monthlyPrice: Number.isFinite(price) ? price : null,
+      currency: safeString(pickField(dto, ['currency']), 'VND'),
+      enabled: pickField(dto, ['enabled']) === true,
+      registrationAvailable: pickField(dto, ['registrationAvailable']) === true,
+      description: safeString(pickField(dto, ['description'])),
+      features,
+    }
   }
-  toSaveDto(monthlyPrice: number | null, enabled: boolean): SavePlanDto { return { monthlyPrice, enabled } }
+  toSaveDto(monthlyPrice: number | null, enabled: boolean, description?: string, features?: string[]): SavePlanDto {
+    return { monthlyPrice, enabled, description, features }
+  }
 }
 export class SubscriptionRequestMapper extends BaseMapper<SubscriptionRequestDto, SubscriptionRequest> {
   toModel(dto: SubscriptionRequestDto | null | undefined): SubscriptionRequest {
