@@ -13,6 +13,7 @@ import {
   Ban,
 } from 'lucide-react'
 import { useDecideSalon, usePendingSalons } from '../queries/admin.queries'
+import { SuspendedSalonBadge } from '@/features/salon/components/suspended-salon-badge'
 import { useConfirm } from '@/hooks/use-confirm'
 
 const STATUS_TABS = [
@@ -69,11 +70,12 @@ export function AdminApprovalsPage() {
           </span>
         )
       case 'SUSPENDED':
+        return <SuspendedSalonBadge status="SUSPENDED" badgeVariant="pill" />
       case 'REJECTED':
         return (
           <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 border border-rose-200 px-2 py-0.5 text-[10px] font-bold text-rose-700">
             <Ban size={12} />
-            {status === 'SUSPENDED' ? 'Đình chỉ' : 'Từ chối'}
+            Từ chối
           </span>
         )
       case 'PENDING_APPROVAL':

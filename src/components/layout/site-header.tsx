@@ -103,9 +103,17 @@ export function SiteHeader() {
                 className="flex items-center gap-3 rounded-full border border-gray-200/90 p-1.5 pr-4 text-sm font-medium text-gray-700 transition hover:border-pink-200 hover:bg-rose-50/50 shadow-2xs"
                 aria-label="Mở menu tài khoản"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-xs font-bold text-white shadow-xs">
-                  {user.fullName?.charAt(0).toUpperCase() || 'U'}
-                </div>
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.fullName || 'User'}
+                    className="h-9 w-9 rounded-full object-cover shadow-xs ring-1 ring-pink-100"
+                  />
+                ) : (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-xs font-bold text-white shadow-xs">
+                    {user.fullName?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                )}
                 <span className="max-w-[130px] truncate text-sm font-semibold text-gray-800">
                   {user.fullName}
                 </span>
@@ -200,6 +208,23 @@ export function SiteHeader() {
 
             {user ? (
               <>
+                <div className="flex items-center gap-3 px-3 py-2 border-b border-gray-100 mb-1">
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.fullName || 'User'}
+                      className="h-10 w-10 rounded-full object-cover shadow-xs ring-1 ring-pink-100"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-xs font-bold text-white shadow-xs">
+                      {user.fullName?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-gray-900">{user.fullName}</p>
+                    <p className="truncate text-xs text-gray-400">{user.email}</p>
+                  </div>
+                </div>
                 <Link
                   to={getDashboardLink()}
                   className="rounded-xl px-4 py-3 text-sm font-medium text-gray-800 transition hover:bg-rose-50"

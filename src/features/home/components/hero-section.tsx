@@ -1,4 +1,3 @@
-import { ShieldCheck, Clock, Sparkles } from 'lucide-react'
 import { HomeSearchSection } from './home-search-section'
 import Lightfall from '@/components/ui/Lightfall'
 
@@ -43,8 +42,8 @@ export function HeroSection() {
         />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* UPPER PART: Eyebrow + Title + Subtitle + Trust Badges */}
+      <div className="relative z-10 mx-auto w-full max-w-[1360px] px-4 sm:px-6 lg:px-8">
+        {/* UPPER PART: Title */}
         <div className="mx-auto max-w-3xl text-center">
           {/* Main Title */}
           <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl leading-[1.15]">
@@ -53,26 +52,10 @@ export function HeroSection() {
               Chốt Lịch Trong 30 Giây
             </span>
           </h1>
-
-          {/* Trust Highlights Row */}
-          <div className="mt-6 sm:mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs sm:text-sm font-medium text-gray-600">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-pink-100 bg-white/80 px-3.5 py-1.5 shadow-2xs backdrop-blur-xs">
-              <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
-              <span>500+ Tiệm nail uy tín</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-pink-100 bg-white/80 px-3.5 py-1.5 shadow-2xs backdrop-blur-xs">
-              <Clock size={16} className="text-brand shrink-0" />
-              <span>Giữ chỗ 30s không chờ đợi</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-pink-100 bg-white/80 px-3.5 py-1.5 shadow-2xs backdrop-blur-xs">
-              <Sparkles size={15} className="text-rose-500 shrink-0" />
-              <span>Đặt hẹn 100% miễn phí</span>
-            </span>
-          </div>
         </div>
 
-        {/* SEARCH BAR & QUICK TAGS - Thêm chính xác 5px khoảng cách phía trên và cân bằng với toàn khung Hero */}
-        <div className="mt-[53px] sm:mt-[69px] lg:mt-[85px]">
+        {/* SEARCH BAR */}
+        <div className="mt-8 sm:mt-12 lg:mt-14">
           <HomeSearchSection />
         </div>
       </div>

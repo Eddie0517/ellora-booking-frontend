@@ -44,8 +44,16 @@ export const useLockAdminUser = () => {
   })
 }
 
-export const usePendingSalons = (page: number, status?: string) =>
-  useQuery({ queryKey: ADMIN_SALON_KEYS.pending(page, status), queryFn: () => adminApi.pendingSalons(page, status) })
+export const usePendingSalons = (
+  page: number = 0,
+  status?: string,
+  options?: { refetchInterval?: number; enabled?: boolean }
+) =>
+  useQuery({
+    queryKey: ADMIN_SALON_KEYS.pending(page, status),
+    queryFn: () => adminApi.pendingSalons(page, status),
+    ...options,
+  })
 
 export const usePendingSalon = (id: string) =>
   useQuery({ queryKey: ADMIN_SALON_KEYS.detail(id), queryFn: () => adminApi.salon(id), enabled: !!id })
@@ -54,7 +62,10 @@ export const useDecideSalon = () => {
   const client = useQueryClient()
   return useMutation({
     mutationFn: ({ id, action }: { id: string; action: 'approve' | 'reject' }) => adminApi.decideSalon(id, action),
-    onSuccess: () => client.invalidateQueries({ queryKey: ADMIN_SALON_KEYS.all }),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ADMIN_SALON_KEYS.all })
+      client.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.summary })
+    },
   })
 }
 
@@ -81,8 +92,16 @@ export const useDecideSalonChange = () => {
   })
 }
 
-export const useAdminDisputes = (status: string, page: number) =>
-  useQuery({ queryKey: ADMIN_DISPUTE_KEYS.list(status, page), queryFn: () => adminApi.disputes(status, page) })
+export const useAdminDisputes = (
+  status: string,
+  page: number,
+  options?: { refetchInterval?: number; enabled?: boolean }
+) =>
+  useQuery({
+    queryKey: ADMIN_DISPUTE_KEYS.list(status, page),
+    queryFn: () => adminApi.disputes(status, page),
+    ...options,
+  })
 
 export const useAdminDispute = (id: string) =>
   useQuery({ queryKey: ADMIN_DISPUTE_KEYS.detail(id), queryFn: () => adminApi.dispute(id), enabled: !!id })

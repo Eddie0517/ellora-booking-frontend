@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useOwnerSalon, useSaveOwnerSalon, useUploadOwnerImage } from '../queries/owner.queries'
+import { SuspendedSalonBadge } from '@/features/salon/components/suspended-salon-badge'
 import { apiError } from '@/lib/axios'
 import { toast } from 'sonner'
 import type { SaveSalon } from '../types/owner.model'
@@ -140,7 +141,7 @@ export function OwnerProfilePage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/png,image/jpeg,image/jpg"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
               className="hidden"
               onChange={handleImageChange}
             />
@@ -149,9 +150,7 @@ export function OwnerProfilePage() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-bold text-gray-900 truncate">{salon.data.name}</h2>
-              <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                {salon.data.status || 'ACTIVE'}
-              </span>
+              <SuspendedSalonBadge status={salon.data.status} badgeVariant="pill" />
             </div>
             <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
               <MapPin size={13} className="shrink-0 text-gray-400" />

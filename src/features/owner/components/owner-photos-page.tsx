@@ -14,6 +14,7 @@ import {
   useOwnerServices,
 } from '../queries/owner.queries'
 import { useConfirm } from '@/hooks/use-confirm'
+import { apiError } from '@/lib/axios'
 
 const SHOWCASE_SLOTS = [
   {
@@ -76,12 +77,12 @@ function BentoSlotCard({
     if (!file) return
     event.target.value = ''
 
-    if (!['image/jpeg', 'image/png'].includes(file.type)) {
-      setMessage('Vui lòng chọn định dạng JPG hoặc PNG.')
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setMessage('Vui lòng chọn định dạng JPG, PNG hoặc WebP.')
       return
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setMessage('Dung lượng ảnh tối đa 5 MB.')
+    if (file.size > 10 * 1024 * 1024) {
+      setMessage('Dung lượng ảnh tối đa 10 MB.')
       return
     }
 
@@ -90,8 +91,8 @@ function BentoSlotCard({
       setMessage('')
       await mutations.uploadShowcaseSlot.mutateAsync({ slotIndex: slot.index, file })
       setMessage('Đã cập nhật ảnh vị trí này thành công!')
-    } catch {
-      setMessage('Không thể tải ảnh lên. Vui lòng thử lại.')
+    } catch (err: unknown) {
+      setMessage(apiError(err) || 'Không thể tải ảnh lên. Vui lòng thử lại.')
     } finally {
       setUploading(false)
     }
@@ -110,8 +111,8 @@ function BentoSlotCard({
       setUploading(true)
       await mutations.removeShowcaseSlot.mutateAsync(slot.index)
       setMessage('Đã xóa ảnh tùy chỉnh.')
-    } catch {
-      setMessage('Không thể xóa ảnh.')
+    } catch (err: unknown) {
+      setMessage(apiError(err) || 'Không thể xóa ảnh.')
     } finally {
       setUploading(false)
     }
@@ -126,7 +127,7 @@ function BentoSlotCard({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png"
+        accept="image/jpeg,image/png,image/webp"
         disabled={uploading}
         onChange={handleFileChange}
         className="hidden"
@@ -273,8 +274,8 @@ function PhotoEditor({
       await mutations.upload.mutateAsync({ kind, id, file })
       setFile(null)
       setMessage('Đã lưu ảnh đại diện thành công.')
-    } catch {
-      setMessage('Không tải được ảnh lên.')
+    } catch (err: unknown) {
+      setMessage(apiError(err) || 'Không tải được ảnh lên.')
     }
   }
 
@@ -289,8 +290,8 @@ function PhotoEditor({
     try {
       await mutations.remove.mutateAsync({ kind, id })
       setMessage('Đã xóa ảnh.')
-    } catch {
-      setMessage('Không xóa được ảnh.')
+    } catch (err: unknown) {
+      setMessage(apiError(err) || 'Không xóa được ảnh.')
     }
   }
 
@@ -314,22 +315,22 @@ function PhotoEditor({
         Chọn ảnh JPG/PNG (tối đa 5 MB)
         <input
           type="file"
-          accept="image/jpeg,image/png"
+          accept="image/jpeg,image/png,image/webp"
           disabled={busy}
           onChange={(event) => {
             const chosen = event.target.files?.[0]
             setFile(
               chosen &&
-                ['image/jpeg', 'image/png'].includes(chosen.type) &&
-                chosen.size <= 5 * 1024 * 1024
+                ['image/jpeg', 'image/png', 'image/webp'].includes(chosen.type) &&
+                chosen.size <= 10 * 1024 * 1024
                 ? chosen
                 : null
             )
             setMessage(
               chosen &&
-                (chosen.size > 5 * 1024 * 1024 ||
-                  !['image/jpeg', 'image/png'].includes(chosen.type))
-                ? 'Chỉ nhận ảnh JPG/PNG tối đa 5 MB.'
+                (chosen.size > 10 * 1024 * 1024 ||
+                  !['image/jpeg', 'image/png', 'image/webp'].includes(chosen.type))
+                ? 'Chỉ nhận ảnh JPG/PNG/WebP tối đa 10 MB.'
                 : ''
             )
             event.target.value = ''
@@ -376,8 +377,8 @@ function GalleryEditor({ id, urls }: { id: string; urls: string[] }) {
       await mutations.uploadGallery.mutateAsync({ id, files })
       setFiles([])
       setMessage('Đã thêm ảnh vào thư viện.')
-    } catch {
-      setMessage('Không tải được ảnh lên.')
+    } catch (err: unknown) {
+      setMessage(apiError(err) || 'Không tải được ảnh lên.')
     }
   }
 
@@ -392,8 +393,8 @@ function GalleryEditor({ id, urls }: { id: string; urls: string[] }) {
     try {
       await mutations.removeGallery.mutateAsync(url)
       setMessage('Đã xóa ảnh thư viện.')
-    } catch {
-      setMessage('Không xóa được ảnh.')
+    } catch (err: unknown) {
+      setMessage(apiError(err) || 'Không xóa được ảnh.')
     }
   }
 
@@ -402,7 +403,7 @@ function GalleryEditor({ id, urls }: { id: string; urls: string[] }) {
       <div>
         <h2 className="text-lg font-bold text-gray-900">Thư viện ảnh tiệm (Gallery)</h2>
         <p className="mt-1 text-xs text-gray-500">
-          {urls.length} / 10 ảnh. Chọn nhiều ảnh cùng lúc; mỗi ảnh JPG/PNG tối đa 5 MB.
+          {urls.length} / 10 ảnh. Chọn nhiều ảnh cùng lúc; mỗi ảnh JPG/PNG/WebP tối đa 10 MB.
         </p>
       </div>
 
@@ -431,7 +432,7 @@ function GalleryEditor({ id, urls }: { id: string; urls: string[] }) {
         <div className="pt-2">
           <input
             type="file"
-            accept="image/jpeg,image/png"
+            accept="image/jpeg,image/png,image/webp"
             multiple
             disabled={busy}
             onChange={(event) => {
@@ -440,8 +441,8 @@ function GalleryEditor({ id, urls }: { id: string; urls: string[] }) {
                 picked.length <= 10 - urls.length &&
                   picked.every(
                     (file) =>
-                      ['image/jpeg', 'image/png'].includes(file.type) &&
-                      file.size <= 5 * 1024 * 1024
+                      ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) &&
+                      file.size <= 10 * 1024 * 1024
                   )
                   ? picked
                   : []
@@ -450,8 +451,8 @@ function GalleryEditor({ id, urls }: { id: string; urls: string[] }) {
                 picked.length > 10 - urls.length ||
                   picked.some(
                     (file) =>
-                      file.size > 5 * 1024 * 1024 ||
-                      !['image/jpeg', 'image/png'].includes(file.type)
+                      file.size > 10 * 1024 * 1024 ||
+                      !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
                   )
                   ? 'Vượt quá 10 ảnh hoặc ảnh không đúng định dạng/kích thước.'
                   : ''

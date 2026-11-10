@@ -614,6 +614,15 @@ export function MyBookingsPage() {
                         </span>
                       </div>
 
+                      {rating <= 2 && (
+                        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/80 p-2.5 text-[11px] text-amber-800 leading-relaxed">
+                          <AlertCircle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                          <span>
+                            Đánh giá không hài lòng (1-2 sao) sẽ được chuyển ngay tới Ban Quản Trị Ellora để hỗ trợ đối soát & bảo vệ quyền lợi của bạn.
+                          </span>
+                        </div>
+                      )}
+
                       {/* Quick Tag Pills */}
                       <div className="flex flex-wrap gap-1.5">
                         {quickReviewTags.map((tag) => (

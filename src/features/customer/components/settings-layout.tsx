@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { CalendarDays, ShieldCheck, UserRound, Sparkles, Search, LogOut, LifeBuoy, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { CalendarDays, ShieldCheck, UserRound, Sparkles, Search, LogOut, LifeBuoy, ChevronRight, CheckCircle2, Camera, RefreshCw, Copy } from 'lucide-react'
+import { useUploadAvatar, useUpdateProfile } from '@/features/auth/queries/profile.queries'
+import { apiError } from '@/lib/axios'
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { jwtAuth } from '@/features/auth/api/jwt'
@@ -33,6 +35,30 @@ export function SettingsLayout() {
   const location = useLocation()
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
+  const uploadAvatar = useUploadAvatar()
+  const updateProfile = useUpdateProfile()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Dung lượng ảnh tối đa 10 MB.')
+      return
+    }
+    try {
+      const url = await uploadAvatar.mutateAsync(file)
+      await updateProfile.mutateAsync({
+        fullName: user?.fullName || '',
+        phone: user?.phone || '',
+        avatarUrl: url,
+      })
+      toast.success('Cập nhật ảnh đại diện thành công!')
+    } catch (err: unknown) {
+      toast.error(apiError(err) || 'Không thể tải ảnh đại diện lên.')
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -78,8 +104,8 @@ export function SettingsLayout() {
           <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             {/* User Info */}
             <div className="flex items-center gap-4 sm:gap-5">
-              <div className="relative">
-                <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-linear-to-tr from-brand to-rose-400 text-2xl sm:text-3xl font-bold text-white shadow-md shadow-brand/20 ring-4 ring-rose-50">
+              <div className="relative group">
+                <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-linear-to-tr from-brand to-rose-400 text-2xl sm:text-3xl font-bold text-white shadow-md shadow-brand/20 ring-4 ring-rose-50 overflow-hidden">
                   {user?.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
@@ -90,12 +116,32 @@ export function SettingsLayout() {
                     initial
                   )}
                 </div>
+
+                {/* Active Indicator */}
                 <div
                   title="Tài khoản đang hoạt động"
-                  className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white"
+                  className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white z-10"
                 >
-                  <span className="h-2 w-2 rounded-full bg-white" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
                 </div>
+
+                {/* Upload Avatar Button on Top Card (Ảnh 3) */}
+                <button
+                  type="button"
+                  disabled={uploadAvatar.isPending}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-brand text-white shadow-md hover:bg-brand-dark transition active:scale-95 disabled:opacity-50 ring-2 ring-white z-10"
+                  title="Thay đổi ảnh đại diện"
+                >
+                  {uploadAvatar.isPending ? <RefreshCw size={13} className="animate-spin" /> : <Camera size={14} />}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
               </div>
 
               <div>
@@ -115,7 +161,22 @@ export function SettingsLayout() {
                   </span>
                 </p>
                 <div className="mt-2 flex items-center gap-3 text-xs text-gray-400">
-                  <span>ID: <code className="font-mono text-gray-600 font-semibold">{user?.id || '---'}</code></span>
+                  <span className="inline-flex items-center gap-1">
+                    ID: <code className="font-mono text-gray-600 font-semibold">{user?.id || '---'}</code>
+                    {user?.id && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(user.id)
+                          toast.success('Đã sao chép mã tài khoản')
+                        }}
+                        className="rounded p-0.5 text-gray-400 hover:text-brand transition"
+                        title="Sao chép ID"
+                      >
+                        <Copy size={12} />
+                      </button>
+                    )}
+                  </span>
                   <span>•</span>
                   <span className="text-emerald-600 font-medium">Tài khoản hoạt động</span>
                 </div>

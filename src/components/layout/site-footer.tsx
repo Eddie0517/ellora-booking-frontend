@@ -29,7 +29,7 @@ export function SiteFooter() {
               />
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-gray-500">
-              Nền tảng làm đẹp & đặt lịch salon hàng đầu, kết nối khách hàng với các nghệ nhân làm móng uy tín.
+              Nền tảng làm đẹp & đặt lịch salon, kết nối khách hàng và các nghệ nhân làm móng uy tín.
             </p>
           </div>
 
@@ -73,11 +73,6 @@ export function SiteFooter() {
                   Đăng ký mở tiệm
                 </Link>
               </li>
-              <li>
-                <Link to="/login" className="transition hover:text-brand">
-                  Cổng quản trị chủ tiệm
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -106,8 +101,8 @@ export function SiteFooter() {
                 </button>
               </li>
               <li>
-                <Link to="/for-business" className="transition hover:text-brand">
-                  Giải đáp thắc mắc
+                <Link to="/contact" className="transition hover:text-brand">
+                  Giải đáp thắc mắc & Liên hệ
                 </Link>
               </li>
             </ul>

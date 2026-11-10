@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import {
-  ShieldCheck,
   Users,
   CheckSquare,
   RefreshCw,
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { jwtAuth } from '@/features/auth/api/jwt'
+import { usePendingSalons, useAdminDisputes } from '../queries/admin.queries'
 
 const links = [
   { to: '/admin/dashboard', label: 'Tổng quan hệ thống', Icon: LayoutDashboard },
@@ -33,6 +33,18 @@ export function AdminLayout() {
   const [open, setOpen] = useState(false)
   const user = useAuthStore((state) => state.user)
 
+  // Tự động kiểm tra số lượng salon đang chờ xét duyệt
+  const { data: pendingSalons } = usePendingSalons(0, 'PENDING_APPROVAL', {
+    refetchInterval: 10000,
+  })
+  const hasPendingApprovals =
+    ((pendingSalons?.totalElements ?? pendingSalons?.content?.length) ?? 0) > 0
+
+  // Kiểm tra khiếu nại / phản ánh lịch hẹn đang mở (OPEN)
+  const { data: openDisputes } = useAdminDisputes('OPEN', 0, { refetchInterval: 10000 })
+  const hasOpenDisputes =
+    ((openDisputes?.totalElements ?? openDisputes?.content?.length) ?? 0) > 0
+
   const logout = async () => {
     await jwtAuth.logout()
     useAuthStore.getState().clear()
@@ -45,10 +57,10 @@ export function AdminLayout() {
     <div className="min-h-screen bg-slate-50 text-gray-900 lg:flex">
       {/* Mobile Header */}
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200/80 bg-white/95 px-4 backdrop-blur-md lg:hidden">
-        <Link to="/admin/dashboard" className="flex items-center gap-2">
-          <img src="/ellora-logoHeader.png" alt="Ellora" className="h-7 w-auto object-contain" />
-          <span className="rounded-md bg-gray-900 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-            Admin
+        <Link to="/admin/dashboard" className="flex items-center gap-2.5">
+          <img src="/ellora-logoHeader.png" alt="Ellora" className="h-9 w-auto object-contain" />
+          <span className="rounded-lg bg-gray-900 px-2.5 py-1 text-xs font-bold text-white uppercase tracking-wider shadow-xs">
+            Admin Console
           </span>
         </Link>
         <button
@@ -76,11 +88,15 @@ export function AdminLayout() {
         } border-r border-slate-200/80 bg-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:shrink-0 lg:flex-col lg:justify-between`}
       >
         <div className="flex flex-col flex-1 overflow-y-auto no-scrollbar">
-          {/* Brand Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 p-5">
-            <Link to="/admin/dashboard" className="flex items-center gap-2.5">
-              <img src="/ellora-logoHeader.png" alt="Ellora" className="h-8 w-auto object-contain" />
-              <span className="rounded-md bg-gray-900 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+          {/* Brand Header - Tăng kích thước logo và console badge */}
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4.5">
+            <Link to="/admin/dashboard" className="flex items-center gap-3 group">
+              <img
+                src="/ellora-logoHeader.png"
+                alt="Ellora"
+                className="h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+              />
+              <span className="rounded-lg bg-gray-900 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-xs">
                 Admin Console
               </span>
             </Link>
@@ -96,60 +112,57 @@ export function AdminLayout() {
             )}
           </div>
 
-          {/* Admin Role Status Card */}
-          <div className="p-4">
-            <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-slate-50 via-gray-50/50 to-white p-3.5 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                  Vai trò hệ thống
-                </span>
-                <span className="flex items-center gap-1 text-[11px] font-semibold text-brand">
-                  <ShieldCheck size={14} />
-                  Toàn quyền
-                </span>
-              </div>
-              <p className="mt-1.5 truncate text-sm font-bold text-gray-900">
-                Trung tâm Quản trị Ellora
-              </p>
-              <p className="mt-0.5 text-xs text-gray-500 font-medium">
-                Kiểm duyệt & Giám sát dịch vụ
-              </p>
-            </div>
-          </div>
-
           {/* Navigation Links */}
-          <nav className="flex flex-col gap-1.5 px-3 py-2" aria-label="Điều hướng quản trị">
-            {links.map(({ to, label, Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => setOpen(false)}
-                className={({ isActive }) =>
-                  `group relative flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.96] ${
-                    isActive
-                      ? 'bg-rose-50/90 text-brand shadow-2xs font-bold border-l-4 border-brand pl-3'
-                      : 'text-gray-600 hover:bg-rose-50/40 hover:text-brand hover:translate-x-1.5'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <div className="flex items-center gap-3.5">
-                      <Icon
-                        size={19}
-                        className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
-                          isActive ? 'text-brand' : 'text-gray-400 group-hover:text-brand'
-                        }`}
-                      />
-                      <span>{label}</span>
-                    </div>
-                    {isActive && (
-                      <ChevronRight size={15} className="text-brand shrink-0 animate-in fade-in" />
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
+          <nav className="flex flex-col gap-1.5 px-3.5 py-4" aria-label="Điều hướng quản trị">
+            {links.map(({ to, label, Icon }) => {
+              const isApprovals = to === '/admin/approvals'
+              const isDisputes = to === '/admin/disputes'
+              const showDot = (isApprovals && hasPendingApprovals) || (isDisputes && hasOpenDisputes)
+              const dotTitle = isApprovals ? 'Có hồ sơ salon đang chờ xét duyệt' : 'Có phản ánh khiếu nại lịch hẹn cần xử lý'
+
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    `group relative flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.96] ${
+                      isActive
+                        ? 'bg-rose-50/90 text-brand shadow-2xs font-bold border-l-4 border-brand pl-3'
+                        : 'text-gray-600 hover:bg-rose-50/40 hover:text-brand hover:translate-x-1.5'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {/* Chấm tròn đỏ phát sáng ở góc trên bên trái ô xét duyệt salon khi có yêu cầu cần duyệt */}
+                      {showDot && (
+                        <span
+                          className="absolute -top-1 -left-1 flex size-3.5 items-center justify-center z-10"
+                          title={dotTitle}
+                        >
+                          <span className="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-80" />
+                          <span className="relative inline-flex size-2.5 rounded-full bg-red-500 shadow-[0_0_10px_#ef4444,0_0_4px_#ef4444] ring-2 ring-white" />
+                        </span>
+                      )}
+
+                      <div className="flex items-center gap-3.5">
+                        <Icon
+                          size={19}
+                          className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
+                            isActive ? 'text-brand' : 'text-gray-400 group-hover:text-brand'
+                          }`}
+                        />
+                        <span>{label}</span>
+                      </div>
+                      {isActive && (
+                        <ChevronRight size={15} className="text-brand shrink-0 animate-in fade-in" />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              )
+            })}
           </nav>
         </div>
 
@@ -157,9 +170,17 @@ export function AdminLayout() {
         <div className="border-t border-slate-100 p-4 bg-white">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-gray-900 to-gray-700 text-white font-bold text-sm shadow-xs">
-                {initial}
-              </div>
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.fullName || 'Quản trị viên'}
+                  className="size-10 rounded-full object-cover shadow-xs ring-1 ring-gray-600"
+                />
+              ) : (
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-gray-900 to-gray-700 text-white font-bold text-sm shadow-xs">
+                  {initial}
+                </div>
+              )}
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-gray-900">
                   {user?.fullName || 'Quản trị viên'}

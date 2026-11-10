@@ -11,6 +11,7 @@ export const router = createBrowserRouter([
       { path: 'salon/:id', lazy: async () => ({ Component: (await import('@/features/salon/components/salon-detail-page')).SalonDetailPage }) },
       { path: 'for-business', lazy: async () => ({ Component: (await import('@/features/business/components/for-business-page')).ForBusinessPage }) },
       { path: 'business-registration', lazy: async () => ({ Component: (await import('@/features/business/components/business-registration-page')).BusinessRegistrationPage }) },
+      { path: 'contact', lazy: async () => ({ Component: (await import('@/features/home/components/contact-page')).ContactPage }) },
       {
         element: <RequireRole roles={['CUSTOMER']} />,
         children: [
@@ -66,6 +67,7 @@ export const router = createBrowserRouter([
         { path: 'approvals', lazy: async () => ({ Component: (await import('@/features/admin/components/admin-approvals-page')).AdminApprovalsPage }) },
         { path: 'support', lazy: async () => ({ Component: (await import('@/features/admin/components/admin-support-page')).AdminSupportPage }) },
         { path: 'salon-changes', lazy: async () => ({ Component: (await import('@/features/admin/components/admin-salon-changes-page')).AdminSalonChangesPage }) },
+        { path: 'disputes', lazy: async () => ({ Component: (await import('@/features/admin/components/admin-disputes-page')).AdminDisputesPage }) },
         { path: 'booking-disputes', lazy: async () => ({ Component: (await import('@/features/admin/components/admin-disputes-page')).AdminDisputesPage }) },
         { path: 'subscriptions', lazy: async () => ({ Component: (await import('@/features/subscription/components/admin-subscriptions-page')).AdminSubscriptionsPage }) },
         { path: 'billing', lazy: async () => ({ Component: (await import('@/features/admin/components/admin-billing-page')).AdminBillingPage }) },

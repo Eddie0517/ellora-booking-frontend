@@ -69,7 +69,7 @@ export function OwnerServicesPage() {
       <label className="text-sm">Giá (₫)<input required min={0} type="number" value={draft.price} onChange={event => setDraft({ ...draft, price: Number(event.target.value) })} className="mt-2 w-full rounded-lg border p-3" /></label>
       <label className="text-sm">Thời lượng (phút)<input required min={5} type="number" value={draft.durationMinutes} onChange={event => setDraft({ ...draft, durationMinutes: Number(event.target.value) })} className="mt-2 w-full rounded-lg border p-3" /></label>
       <label className="text-sm">Mô tả<input value={draft.description} onChange={event => setDraft({ ...draft, description: event.target.value })} className="mt-2 w-full rounded-lg border p-3" /></label>
-      <label className="text-sm sm:col-span-2">Ảnh dịch vụ<input type="file" accept="image/png,image/jpeg" onChange={event => {
+      <label className="text-sm sm:col-span-2">Ảnh dịch vụ<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
         const file = event.target.files?.[0]
         if (file) upload.mutate(file, { onSuccess: url => setDraft(current => ({ ...current, imageUrl: url })) })
       }} className="mt-2 block" />

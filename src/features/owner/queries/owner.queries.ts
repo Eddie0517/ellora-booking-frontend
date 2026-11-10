@@ -21,10 +21,10 @@ export const useSaveOwnerSalon = () => {
   const client = useQueryClient()
   return useMutation({ mutationFn: (value: SaveSalon) => ownerApi.saveSalon(value), onSuccess: () => client.invalidateQueries({ queryKey: OWNER_QUERY_KEYS.all }) })
 }
-export const useOwnerSummary = () => useQuery({ queryKey: OWNER_QUERY_KEYS.summary, queryFn: ownerApi.summary })
+export const useOwnerSummary = (options?: { refetchInterval?: number; enabled?: boolean }) => useQuery({ queryKey: OWNER_QUERY_KEYS.summary, queryFn: ownerApi.summary, ...options })
 export const useOwnerServices = () => useQuery({ queryKey: OWNER_QUERY_KEYS.services, queryFn: ownerApi.services })
 export const useOwnerEmployees = () => useQuery({ queryKey: OWNER_QUERY_KEYS.employees, queryFn: ownerApi.employees })
-export const useOwnerBookings = (salonId: string, page: number, status?: string) => useQuery({ queryKey: OWNER_QUERY_KEYS.bookings(salonId, page, status), queryFn: () => ownerApi.bookings(salonId, page, status), enabled: !!salonId })
+export const useOwnerBookings = (salonId: string, page: number, status?: string, options?: { refetchInterval?: number; enabled?: boolean }) => useQuery({ queryKey: OWNER_QUERY_KEYS.bookings(salonId, page, status), queryFn: () => ownerApi.bookings(salonId, page, status), enabled: !!salonId, ...options })
 export const useOwnerReviews = (page: number) => useQuery({ queryKey: OWNER_QUERY_KEYS.reviews(page), queryFn: () => ownerApi.reviews(page) })
 export const useOwnerRevenue = (from: string, to: string, groupBy: 'day' | 'week' | 'month' | 'year') => useQuery({ queryKey: OWNER_QUERY_KEYS.revenue(from, to, groupBy), queryFn: () => ownerApi.revenue(from, to, groupBy), enabled: !!from && !!to && from <= to })
 export const useWorkingHours = () => useQuery({ queryKey: OWNER_QUERY_KEYS.workingHours, queryFn: ownerApi.workingHours })

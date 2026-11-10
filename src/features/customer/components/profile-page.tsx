@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import {
   CheckCircle2,
   AlertCircle,
@@ -7,26 +7,19 @@ import {
   Phone,
   Save,
   RotateCcw,
-  Copy,
-  Check,
   ShieldCheck,
-  Camera,
-  RefreshCw,
 } from 'lucide-react'
-import { useProfile, useUpdateProfile, useUploadAvatar } from '@/features/auth/queries/profile.queries'
+import { useProfile, useUpdateProfile } from '@/features/auth/queries/profile.queries'
 import { apiError } from '@/lib/axios'
 import { toast } from 'sonner'
 
 export function ProfilePage() {
   const profile = useProfile()
   const update = useUpdateProfile()
-  const uploadAvatar = useUploadAvatar()
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [draft, setDraft] = useState<{ fullName: string; phone: string; avatarUrl?: string | null } | null>(null)
   const [message, setMessage] = useState('')
   const [isError, setIsError] = useState(false)
-  const [copiedId, setCopiedId] = useState(false)
 
   if (profile.isPending) {
     return (
@@ -66,39 +59,10 @@ export function ProfilePage() {
     draft.avatarUrl !== profile.data.avatarUrl
   )
 
-  const copyId = async () => {
-    if (!profile.data.id) return
-    try {
-      await navigator.clipboard.writeText(profile.data.id)
-      setCopiedId(true)
-      toast.success('Đã sao chép mã tài khoản')
-      setTimeout(() => setCopiedId(false), 2000)
-    } catch {
-      toast.error('Không thể sao chép mã tài khoản')
-    }
-  }
-
   const handleReset = () => {
     setDraft(null)
     setMessage('')
     setIsError(false)
-  }
-
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    try {
-      const url = await uploadAvatar.mutateAsync(file)
-      await update.mutateAsync({
-        fullName: value.fullName.trim(),
-        phone: value.phone.trim(),
-        avatarUrl: url,
-      })
-      setDraft(prev => prev ? { ...prev, avatarUrl: url } : null)
-      toast.success('Cập nhật ảnh đại diện thành công!')
-    } catch (err: unknown) {
-      toast.error(apiError(err) || 'Không thể tải ảnh đại diện lên.')
-    }
   }
 
   const submit = async (e: FormEvent) => {
@@ -123,8 +87,6 @@ export function ProfilePage() {
     }
   }
 
-  const initial = profile.data.fullName?.trim() ? profile.data.fullName.trim().charAt(0).toUpperCase() : 'U'
-
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -135,65 +97,6 @@ export function ProfilePage() {
         <p className="mt-1 text-xs sm:text-sm text-gray-500">
           Xem và cập nhật thông tin cá nhân của bạn để các salon dễ dàng liên hệ và phục vụ chu đáo nhất.
         </p>
-      </div>
-
-      {/* Account Overview Card */}
-      <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white p-5 sm:p-6 shadow-xs shadow-rose-950/5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="relative group">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-linear-to-tr from-brand to-rose-400 text-xl font-bold text-white shadow-xs overflow-hidden">
-                {value.avatarUrl ? (
-                  <img
-                    src={value.avatarUrl}
-                    alt={value.fullName}
-                    className="h-full w-full rounded-2xl object-cover"
-                  />
-                ) : (
-                  initial
-                )}
-              </div>
-              <button
-                type="button"
-                disabled={uploadAvatar.isPending}
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-brand text-white shadow-sm hover:bg-brand-dark transition disabled:opacity-50"
-                title="Thay đổi ảnh đại diện"
-              >
-                {uploadAvatar.isPending ? <RefreshCw size={12} className="animate-spin" /> : <Camera size={13} />}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/jpg"
-                className="hidden"
-                onChange={handleAvatarChange}
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-base font-bold text-gray-900">{profile.data.fullName}</span>
-                <span className="rounded-full bg-rose-50 border border-pink-200/80 px-2 py-0.5 text-[10px] font-bold text-brand">
-                  Khách hàng
-                </span>
-              </div>
-              <p className="mt-0.5 text-xs text-gray-500">{profile.data.email}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 self-start sm:self-auto rounded-2xl bg-gray-50 border border-gray-100 px-3 py-2 text-xs text-gray-600">
-            <span className="text-gray-400">Mã KH:</span>
-            <span className="font-mono font-bold text-gray-800">{profile.data.id || 'N/A'}</span>
-            <button
-              type="button"
-              onClick={() => void copyId()}
-              className="ml-1 rounded-lg p-1 text-gray-400 hover:bg-white hover:text-brand transition"
-              title="Sao chép ID"
-            >
-              {copiedId ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Profile Form Card */}

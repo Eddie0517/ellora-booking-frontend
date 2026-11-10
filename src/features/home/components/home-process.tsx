@@ -1,4 +1,4 @@
-import { Sparkles, CalendarDays, CheckCircle2, ShieldCheck, Star, Clock, Users } from 'lucide-react'
+import { Sparkles, CalendarDays, CheckCircle2, ShieldCheck } from 'lucide-react'
 
 const processSteps = [
   {
@@ -25,13 +25,6 @@ const processSteps = [
       'Xác nhận lịch hẹn tự động tức thì. Bạn chỉ cần ghé tiệm đúng giờ và tận hưởng dịch vụ làm đẹp không phải chờ đợi.',
     highlight: 'Xác nhận tức thì',
   },
-]
-
-const stats = [
-  { icon: Users, value: '12.000+', label: 'Lượt đặt lịch thành công' },
-  { icon: Sparkles, value: '500+', label: 'Salon đối tác tuyển chọn' },
-  { icon: Star, value: '4.9 ★', label: 'Điểm đánh giá trung bình' },
-  { icon: Clock, value: '30 Giây', label: 'Thời gian thao tác chốt chỗ' },
 ]
 
 export function HomeProcess() {
@@ -88,28 +81,6 @@ export function HomeProcess() {
               </div>
             )
           })}
-        </div>
-
-        {/* Stats Row */}
-        <div className="mt-16 rounded-3xl border border-pink-100 bg-gradient-to-r from-rose-50/60 via-pink-50/30 to-rose-50/60 p-8 sm:p-10">
-          <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-            {stats.map((s, idx) => {
-              const Icon = s.icon
-              return (
-                <div key={idx} className="flex flex-col items-center text-center">
-                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-white text-brand shadow-2xs">
-                    <Icon size={18} />
-                  </div>
-                  <span className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
-                    {s.value}
-                  </span>
-                  <span className="mt-1 text-xs font-medium text-gray-500">
-                    {s.label}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
         </div>
       </div>
     </section>
