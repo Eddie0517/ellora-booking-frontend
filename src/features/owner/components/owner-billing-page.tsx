@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   QrCode,
@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Clock,
   Sparkles,
+  Bell,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -29,29 +30,47 @@ export function OwnerBillingPage() {
   const billQuery = useOwnerBill(selectedMonth)
   const preparePayment = usePreparePayment()
   const syncPayment = useSyncPayment()
+  const { mutate: triggerSyncPayment } = syncPayment
+  const handledRedirectRef = useRef<string | null>(null)
 
   // Xử lý tự động kiểm tra khi PayOS redirect về sau khi thanh toán
   useEffect(() => {
     const orderCode = searchParams.get('orderCode')
     const status = searchParams.get('status')
-    if (orderCode || status === 'PAID') {
-      toast.info('Đang đồng bộ trạng thái thanh toán từ PayOS...')
-      syncPayment.mutate(selectedMonth, {
-        onSuccess: (data) => {
-          if (data.status === 'PAID' || data.due === 0) {
-            toast.success('Thanh toán thành công! Cơ sở đã được mở lại dịch vụ bình thường.')
-          } else {
-            toast.info('Hệ thống đã cập nhật đối soát phí sàn.')
-          }
-          // Xóa param query để tránh trigger lại
-          setSearchParams({}, { replace: true })
-        },
-        onError: () => {
-          toast.error('Không thể tự động đồng bộ kết quả thanh toán. Vui lòng nhấn "Kiểm tra thanh toán".')
-        },
-      })
+    const cancel = searchParams.get('cancel')
+
+    if (!orderCode && !status) {
+      return
     }
-  }, [searchParams, selectedMonth, setSearchParams, syncPayment])
+
+    const redirectKey = `${orderCode ?? ''}:${status ?? ''}:${selectedMonth}`
+    if (handledRedirectRef.current === redirectKey) {
+      return
+    }
+    handledRedirectRef.current = redirectKey
+
+    // Xóa ngay query params trên URL để không bị trigger lặp lại khi re-render
+    setSearchParams({}, { replace: true })
+
+    if (cancel === 'true' || status === 'CANCELLED') {
+      toast.info('Đã hủy giao dịch thanh toán trên PayOS.')
+      return
+    }
+
+    toast.info('Đang đồng bộ trạng thái thanh toán từ PayOS...')
+    triggerSyncPayment(selectedMonth, {
+      onSuccess: (data) => {
+        if (data.status === 'PAID' || data.due === 0) {
+          toast.success('Thanh toán thành công! Cơ sở đã được mở lại dịch vụ bình thường.')
+        } else {
+          toast.info('Hệ thống đã cập nhật đối soát phí sàn.')
+        }
+      },
+      onError: () => {
+        toast.error('Không thể tự động đồng bộ kết quả thanh toán. Vui lòng nhấn "Kiểm tra thanh toán".')
+      },
+    })
+  }, [searchParams, selectedMonth, setSearchParams, triggerSyncPayment])
 
   const copyTransferContent = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -125,6 +144,39 @@ export function OwnerBillingPage() {
               Vui lòng bấm <strong>"Thanh toán ngay qua PayOS"</strong> bên dưới để hoàn tất phí sàn và tự động mở lại dịch vụ ngay lập tức.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Admin Reminder Banner */}
+      {!isPaid && billQuery.data && billQuery.data.due > 0 && billQuery.data.remindedAt && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-amber-300 bg-amber-50/90 p-5 text-amber-950 shadow-xs animate-in fade-in">
+          <div className="flex items-start gap-3.5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+              <Bell className="size-5 animate-bounce" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-sm text-amber-900">
+                Nhắc nhở thanh toán phí nền tảng tháng {billQuery.data.month}
+              </h3>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                Quản trị viên đã gửi nhắc nhở thanh toán số tiền{' '}
+                <strong className="font-extrabold text-[#8C3A5A]">
+                  {billQuery.data.due.toLocaleString('vi-VN')} ₫
+                </strong>{' '}
+                vào lúc <strong>{new Date(billQuery.data.remindedAt).toLocaleString('vi-VN')}</strong>. Vui lòng hoàn tất thanh toán trước hạn chót ngày{' '}
+                <strong>{billQuery.data.dueDate}</strong>.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={preparePayment.isPending}
+            onClick={() => void handlePayViaPayOs()}
+            className="shrink-0 inline-flex items-center justify-center gap-2 rounded-xl bg-[#8C3A5A] px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#722e48] active:scale-95 transition disabled:opacity-50"
+          >
+            <QrCode size={15} />
+            <span>Thanh toán ngay</span>
+          </button>
         </div>
       )}
 
@@ -213,6 +265,17 @@ export function OwnerBillingPage() {
                     </span>
                     <span className="font-semibold text-emerald-600">
                       {new Date(billQuery.data.paidAt).toLocaleString('vi-VN')}
+                    </span>
+                  </div>
+                )}
+                {billQuery.data.remindedAt && billQuery.data.due > 0 && (
+                  <div className="flex justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Bell size={14} className="text-amber-500" />
+                      Nhắc thanh toán gần nhất:
+                    </span>
+                    <span className="font-semibold text-amber-700">
+                      {new Date(billQuery.data.remindedAt).toLocaleString('vi-VN')}
                     </span>
                   </div>
                 )}

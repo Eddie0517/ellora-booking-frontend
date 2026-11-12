@@ -87,7 +87,7 @@ export function AdminBillingPage() {
   const handleRemind = async (bill: PlatformBill) => {
     const ok = await confirm({
       title: 'Gửi nhắc nhở thanh toán',
-      description: `Gửi email nhắc nhở thanh toán phí sàn tháng ${bill.month} đến salon ${bill.salonName}?`,
+      description: `Gửi thông báo & email nhắc nhở thanh toán phí sàn tháng ${bill.month} (${bill.due.toLocaleString('vi-VN')} ₫) đến salon ${bill.salonName}?`,
       confirmText: 'Gửi nhắc nhở',
     })
     if (!ok) return
@@ -97,9 +97,10 @@ export function AdminBillingPage() {
         salonId: bill.salonId,
         month: bill.month,
       })
-      toast.success(`Đã gửi email nhắc nhở thanh toán đến ${bill.salonName}`)
-    } catch {
-      toast.error('Không thể gửi email nhắc nhở')
+      toast.success(`Đã gửi nhắc nhở thanh toán đến salon ${bill.salonName}`)
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Không thể gửi nhắc nhở thanh toán'
+      toast.error(msg)
     }
   }
 
@@ -288,6 +289,12 @@ export function AdminBillingPage() {
                           {statusInfo.label}
                         </span>
                         <div className="text-[11px] text-gray-400 mt-0.5">Hạn: {bill.dueDate}</div>
+                        {bill.remindedAt && bill.due > 0 && (
+                          <div className="text-[10px] font-semibold text-amber-600 mt-0.5 flex items-center gap-1">
+                            <Bell size={10} />
+                            <span>Đã nhắc: {new Date(bill.remindedAt).toLocaleString('vi-VN')}</span>
+                          </div>
+                        )}
                       </td>
                       <td className="py-3 px-3 text-right space-x-1">
                         <button

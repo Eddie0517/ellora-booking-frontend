@@ -30,8 +30,13 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  { path: '/login', lazy: async () => ({ Component: (await import('@/features/auth/components/login-page')).LoginPage }) },
-  { path: '/register', lazy: async () => ({ Component: (await import('@/features/auth/components/register-page')).RegisterPage }) },
+  {
+    lazy: async () => ({ Component: (await import('@/features/auth/components/login-page')).AuthPageLayout }),
+    children: [
+      { path: '/login', element: null },
+      { path: '/register', element: null },
+    ],
+  },
   { path: '/forgot-password', lazy: async () => ({ Component: (await import('@/features/auth/components/forgot-password-page')).ForgotPasswordPage }) },
   {
     element: <RequireRole roles={['SALON_OWNER']} />,

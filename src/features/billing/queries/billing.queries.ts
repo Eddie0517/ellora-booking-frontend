@@ -45,17 +45,23 @@ export const useConfirmPayment = () => {
 }
 
 export const useRemindPayment = () => {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ salonId, month }: { salonId: number; month: string }) =>
       billingApi.remindPayment(salonId, month),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: BILLING_QUERY_KEYS.all }),
   })
 }
 
-export const useOwnerBill = (month: string) =>
+export const useOwnerBill = (
+  month: string,
+  options?: { refetchInterval?: number; enabled?: boolean }
+) =>
   useQuery({
     queryKey: BILLING_QUERY_KEYS.ownerBill(month),
     queryFn: () => billingApi.getOwnerBill(month),
-    enabled: !!month,
+    enabled: (options?.enabled ?? true) && !!month,
+    refetchInterval: options?.refetchInterval,
   })
 
 export const useBillingStatus = () =>

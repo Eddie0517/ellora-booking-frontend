@@ -42,8 +42,10 @@ export function SiteHeader() {
   const isTransparent = !isScrolled && !open
 
   const isSalonOwner = user?.role === 'SALON_OWNER'
+  const isAdmin = user?.role === 'ADMIN'
   const visibleNavLinks = navigationLinks.filter((item) => {
-    if (isSalonOwner && item.to === '/search') return false
+    if (isAdmin) return false
+    if (isSalonOwner && (item.to === '/search' || item.to === '/')) return false
     return true
   })
 
@@ -58,7 +60,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand Logo */}
         <Link
-          to="/"
+          to={isAdmin ? '/admin/dashboard' : isSalonOwner ? '/owner/dashboard' : '/'}
           aria-label="Trang chủ Ellora"
           className="flex items-center gap-2 group transition-opacity hover:opacity-90 py-0.5"
           onClick={() => setOpen(false)}
@@ -70,8 +72,8 @@ export function SiteHeader() {
           />
         </Link>
 
-        {/* Global Quick Search Pill (Desktop - hidden for salon owner) */}
-        {pathname !== '/' && !isSalonOwner ? (
+        {/* Global Quick Search Pill (Desktop - hidden for salon owner and admin) */}
+        {pathname !== '/' && !isSalonOwner && !isAdmin ? (
           <Link
             to="/search"
             className="hidden lg:flex items-center gap-2.5 rounded-full border border-gray-200/90 bg-gray-50/90 px-4 py-2.5 text-sm text-gray-500 transition-all hover:border-pink-300 hover:bg-white hover:text-gray-900 shadow-2xs"
@@ -98,6 +100,14 @@ export function SiteHeader() {
                 {item.label}
               </NavLink>
             ))}
+            {isSalonOwner && (
+              <Link
+                to="/owner/dashboard"
+                className="rounded-full bg-rose-50 border border-pink-200 px-3.5 py-1.5 text-xs font-bold text-brand hover:bg-rose-100 transition-colors shadow-2xs"
+              >
+                Về quản lý salon
+              </Link>
+            )}
           </div>
 
           <div className="h-6 w-px bg-gray-200" />
