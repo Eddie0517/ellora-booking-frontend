@@ -20,6 +20,8 @@ import { useDecideSalon, usePendingSalons } from '../queries/admin.queries'
 import { SuspendedSalonBadge } from '@/features/salon/components/suspended-salon-badge'
 import { useConfirm } from '@/hooks/use-confirm'
 
+const PAGE_SIZE = 20
+
 const STATUS_TABS = [
   { id: 'PENDING_APPROVAL', label: 'Chờ duyệt' },
   { id: 'ALL', label: 'Tất cả (Lịch sử)' },
@@ -196,6 +198,19 @@ export function AdminApprovalsPage() {
 
             {pending.isPending ? (
               <div className="py-12 text-center text-sm text-gray-400">Đang tải hồ sơ…</div>
+            ) : pending.isError ? (
+              <div className="py-12 text-center">
+                <AlertCircle className="size-8 text-rose-300 mx-auto mb-2" />
+                <p className="text-sm font-semibold text-gray-700">Không tải được danh sách hồ sơ</p>
+                <p className="text-xs text-gray-400 mt-1">Vui lòng kiểm tra kết nối và thử lại.</p>
+                <button
+                  type="button"
+                  onClick={() => void pending.refetch()}
+                  className="mt-3 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-slate-50"
+                >
+                  Thử lại
+                </button>
+              </div>
             ) : salonList.length === 0 ? (
               <div className="py-12 text-center">
                 <Store className="size-8 text-gray-300 mx-auto mb-2" />
@@ -250,7 +265,7 @@ export function AdminApprovalsPage() {
             {pending.data && pending.data.totalElements > 0 && (
               <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-4">
                 <span className="text-xs text-gray-500 font-medium">
-                  Trang {page + 1} / {Math.max(1, Math.ceil((pending.data?.totalElements || 0) / 20) || 1)}
+                  Trang {page + 1} / {Math.max(1, Math.ceil((pending.data?.totalElements || 0) / PAGE_SIZE) || 1)}
                 </span>
 
                 <div className="flex items-center gap-2">

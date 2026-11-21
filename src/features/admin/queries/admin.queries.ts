@@ -9,7 +9,7 @@ export const ADMIN_QUERY_KEYS = {
 }
 export const ADMIN_SALON_KEYS = {
   all: ['admin', 'salons'] as const,
-  pending: (page: number, status?: string) => ['admin', 'salons', 'pending', page, status || 'ALL'] as const,
+  pending: (page: number, status: string) => ['admin', 'salons', 'pending', page, status] as const,
   detail: (id: string) => ['admin', 'salons', id] as const,
 }
 export const ADMIN_SUPPORT_KEYS = { all: ['admin', 'support'] as const }
@@ -46,10 +46,13 @@ export const useLockAdminUser = () => {
 
 export const usePendingSalons = (
   page: number = 0,
-  status?: string,
+  status: string = 'PENDING_APPROVAL',
   options?: { refetchInterval?: number; enabled?: boolean }
 ) =>
   useQuery({
+    // The status is always sent explicitly so the cache key matches the actual
+    // server-side filter. Previously an omitted status (dashboard) and the
+    // "ALL" history tab shared the same key but returned different data.
     queryKey: ADMIN_SALON_KEYS.pending(page, status),
     queryFn: () => adminApi.pendingSalons(page, status),
     ...options,

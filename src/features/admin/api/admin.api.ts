@@ -51,7 +51,7 @@ export const adminApi = {
 
   async users(keyword: string, page: number): Promise<PageModel<AdminUser>> {
     const response = await api.get<any>(ADMIN_ENDPOINTS.users, {
-      params: { keyword: keyword || '', page, size: 20 },
+      params: { keyword: keyword || '', page, pageSize: 20 },
     })
     return adminUserMapper.toPaginationModel(unwrap(response.data))
   },
@@ -66,7 +66,7 @@ export const adminApi = {
 
   async pendingSalons(page: number, status?: string): Promise<PageModel<PendingSalon>> {
     const response = await api.get<any>(ADMIN_ENDPOINTS.pendingSalons, {
-      params: { page, size: 20, ...(status ? { status } : {}) },
+      params: { page, pageSize: 20, ...(status ? { status } : {}) },
     })
     return pendingSalonMapper.toPaginationModel(unwrap(response.data))
   },
@@ -116,7 +116,7 @@ export const adminApi = {
 
   async disputes(status: string, page: number): Promise<PageModel<BookingDispute>> {
     const response = await api.get<any>(ADMIN_ENDPOINTS.disputes, {
-      params: { page, size: 20, ...(status ? { status } : {}) },
+      params: { page, pageSize: 20, ...(status ? { status } : {}) },
     })
     return bookingDisputeMapper.toPaginationModel(unwrap(response.data))
   },
