@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MapPin, Search } from 'lucide-react'
 
 export function SalonSearchForm({
@@ -10,14 +10,30 @@ export function SalonSearchForm({
   initialLocation?: string
 }) {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [keyword, setKeyword] = useState(initialKeyword)
   const [location, setLocation] = useState(initialLocation)
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    const params = new URLSearchParams()
-    if (keyword.trim()) params.set('keyword', keyword.trim())
-    if (location.trim()) params.set('location', location.trim())
+    const params = new URLSearchParams(searchParams)
+    if (keyword.trim()) {
+      params.set('keyword', keyword.trim())
+    } else {
+      params.delete('keyword')
+    }
+    if (location.trim()) {
+      params.set('location', location.trim())
+      if (location.trim() !== initialLocation.trim()) {
+        params.delete('latitude')
+        params.delete('longitude')
+      }
+    } else {
+      params.delete('location')
+      params.delete('latitude')
+      params.delete('longitude')
+    }
+    params.set('page', '0')
     navigate(`/search${params.size ? `?${params}` : ''}`)
   }
 

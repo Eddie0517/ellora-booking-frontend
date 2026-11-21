@@ -29,7 +29,7 @@ export function UserLocationSearchBox({
   nearestDistanceKm,
   className = '',
 }: UserLocationSearchBoxProps) {
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(userLocation?.label || '')
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [isGpsLoading, setIsGpsLoading] = useState(false)
@@ -39,6 +39,15 @@ export function UserLocationSearchBox({
   const containerRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const isSelectedRef = useRef(false)
+
+  // Sync query when userLocation changes from parent (e.g. seeded via GPS query params)
+  useEffect(() => {
+    if (userLocation?.label) {
+      setQuery(userLocation.label)
+    } else if (!userLocation) {
+      setQuery('')
+    }
+  }, [userLocation?.label, userLocation?.lat, userLocation?.lng])
 
   // Close dropdown on click outside
   useEffect(() => {

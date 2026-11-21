@@ -1,12 +1,26 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, SlidersHorizontal, SearchX, Sparkles, Map as MapIcon, LayoutGrid } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  SlidersHorizontal,
+  SearchX,
+  Sparkles,
+  Map as MapIcon,
+  LayoutGrid,
+  MapPin,
+  Calendar,
+  Clock,
+  X,
+  Navigation,
+} from 'lucide-react'
 import { SalonCard } from './salon-card'
 import { SalonSearchForm } from './salon-search-form'
 import { SalonSearchMap, type UserLocation } from './salon-search-map'
 import { UserLocationSearchBox } from './user-location-search-box'
 import type { Salon } from '../types/salon.model'
 import { useSalons } from '../queries/salon.queries'
+import { calculateDistanceKm } from '../services/place-search.service'
 import { useAuthStore } from '@/store/auth.store'
 
 const quickFilters = [
@@ -37,9 +51,36 @@ export function SearchPage() {
   const radiusKm = params.get('radiusKm') ? Number(params.get('radiusKm')) : undefined
   const [activeFilter, setActiveFilter] = useState(keyword)
   const [showMap, setShowMap] = useState(true)
-  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(() => {
+    if (latitude !== undefined && longitude !== undefined && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      return {
+        lat: latitude,
+        lng: longitude,
+        label: location || 'Vị trí GPS của bạn',
+      }
+    }
+    return null
+  })
   const [nearestSalon, setNearestSalon] = useState<Salon | null>(null)
   const [nearestDistanceKm, setNearestDistanceKm] = useState<number | null>(null)
+
+  // Seed / Sync GPS coordinates from URL query parameters
+  useEffect(() => {
+    if (latitude !== undefined && longitude !== undefined && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      setUserLocation((prev) => {
+        if (prev?.lat === latitude && prev?.lng === longitude && prev?.label === (location || 'Vị trí GPS của bạn')) {
+          return prev
+        }
+        return {
+          lat: latitude,
+          lng: longitude,
+          label: location || 'Vị trí GPS của bạn',
+        }
+      })
+    } else if (!latStr && !lngStr) {
+      setUserLocation(null)
+    }
+  }, [latitude, longitude, location, latStr, lngStr])
 
   const salons = useSalons({
     keyword,
@@ -53,6 +94,46 @@ export function SearchPage() {
     page,
     size: 12,
   })
+
+  // Handle location selection from UserLocationSearchBox or GPS click
+  const handleLocationSelect = (loc: UserLocation | null) => {
+    setUserLocation(loc)
+    const next = new URLSearchParams(params)
+    if (loc && Number.isFinite(loc.lat) && Number.isFinite(loc.lng)) {
+      next.set('latitude', String(loc.lat))
+      next.set('longitude', String(loc.lng))
+      next.set('sort', 'distance')
+      if (loc.label) next.set('location', loc.label)
+    } else {
+      next.delete('latitude')
+      next.delete('longitude')
+      if (params.get('sort') === 'distance') {
+        next.delete('sort')
+      }
+    }
+    next.set('page', '0')
+    setParams(next)
+  }
+
+  // Dynamically compute real-time distance from user GPS if not already populated
+  const displaySalons = (salons.data?.content ?? []).map((salon) => {
+    if (userLocation && salon.coordinates && (salon.distanceKm === null || salon.distanceKm === undefined)) {
+      return {
+        ...salon,
+        distanceKm: calculateDistanceKm(
+          userLocation.lat,
+          userLocation.lng,
+          salon.coordinates.lat,
+          salon.coordinates.lng
+        ),
+      }
+    }
+    return salon
+  })
+
+  if (sort === 'distance' && userLocation) {
+    displaySalons.sort((a, b) => (a.distanceKm ?? 9999) - (b.distanceKm ?? 9999))
+  }
 
   const move = (n: number) => {
     const next = new URLSearchParams(params)
@@ -76,6 +157,7 @@ export function SearchPage() {
   const resetFilters = () => {
     setActiveFilter('')
     setParams(new URLSearchParams())
+    setUserLocation(null)
   }
 
   const totalPages = salons.data ? Math.ceil(salons.data.totalElements / 12) || 1 : 1
@@ -129,6 +211,115 @@ export function SearchPage() {
           </div>
         </div>
 
+        {/* Active Filter Chips */}
+        {(keyword || location || date || time || userLocation) && (
+          <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-semibold text-gray-400 mr-0.5">Bộ lọc đang áp dụng:</span>
+            {keyword && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 font-semibold text-brand border border-rose-200">
+                <span>Dịch vụ: {keyword}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = new URLSearchParams(params)
+                    next.delete('keyword')
+                    next.set('page', '0')
+                    setParams(next)
+                    setActiveFilter('')
+                  }}
+                  className="hover:text-rose-900 cursor-pointer"
+                  title="Xóa lọc dịch vụ"
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            )}
+            {location && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 font-semibold text-brand border border-rose-200">
+                <MapPin size={12} />
+                <span>{location}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = new URLSearchParams(params)
+                    next.delete('location')
+                    next.delete('latitude')
+                    next.delete('longitude')
+                    if (next.get('sort') === 'distance') next.delete('sort')
+                    next.set('page', '0')
+                    setParams(next)
+                    setUserLocation(null)
+                  }}
+                  className="hover:text-rose-900 cursor-pointer"
+                  title="Xóa lọc địa điểm"
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            )}
+            {userLocation && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 font-semibold text-sky-700 border border-sky-200">
+                <Navigation size={12} className="text-sky-600 fill-sky-600" />
+                <span>Đang định vị GPS: {userLocation.label || 'Vị trí của bạn'}</span>
+              </span>
+            )}
+            {date && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 font-semibold text-brand border border-rose-200">
+                <Calendar size={12} />
+                <span>Ngày: {date}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = new URLSearchParams(params)
+                    next.delete('date')
+                    next.set('page', '0')
+                    setParams(next)
+                  }}
+                  className="hover:text-rose-900 cursor-pointer"
+                  title="Xóa ngày hẹn"
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            )}
+            {time && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 font-semibold text-brand border border-rose-200">
+                <Clock size={12} />
+                <span>
+                  Khung giờ:{' '}
+                  {time === 'morning'
+                    ? 'Sáng (08:00 - 12:00)'
+                    : time === 'afternoon'
+                    ? 'Chiều (12:00 - 17:00)'
+                    : time === 'evening'
+                    ? 'Tối (17:00 - 21:00)'
+                    : time}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = new URLSearchParams(params)
+                    next.delete('time')
+                    next.set('page', '0')
+                    setParams(next)
+                  }}
+                  className="hover:text-rose-900 cursor-pointer"
+                  title="Xóa khung giờ"
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="text-xs font-semibold text-gray-500 hover:text-brand underline ml-1 cursor-pointer"
+            >
+              Xóa tất cả
+            </button>
+          </div>
+        )}
+
         {/* Results Bar */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4">
           <p className="text-sm text-gray-600">
@@ -179,10 +370,10 @@ export function SearchPage() {
               <div className="rounded-2xl border border-red-100 bg-red-50 p-8 text-center text-sm text-red-600">
                 Không tải được danh sách salon. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau.
               </div>
-            ) : salons.data && salons.data.content.length > 0 ? (
+            ) : salons.data && displaySalons.length > 0 ? (
               <>
                 <div className={`grid gap-6 ${showMap ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
-                  {salons.data.content.map((salon) => (
+                  {displaySalons.map((salon) => (
                     <SalonCard key={salon.id} salon={salon} />
                   ))}
                 </div>
@@ -249,7 +440,7 @@ export function SearchPage() {
           {showMap && (
             <div className="order-first lg:order-last lg:col-span-5 xl:col-span-5 lg:sticky lg:top-24 space-y-3">
               <SalonSearchMap
-                salons={salons.data?.content ?? []}
+                salons={displaySalons}
                 userLocation={userLocation}
                 onNearestSalonChange={(salon, dist) => {
                   setNearestSalon(salon)
@@ -259,7 +450,7 @@ export function SearchPage() {
               />
               <UserLocationSearchBox
                 userLocation={userLocation}
-                onLocationSelect={(loc) => setUserLocation(loc)}
+                onLocationSelect={handleLocationSelect}
                 nearestSalon={nearestSalon}
                 nearestDistanceKm={nearestDistanceKm}
               />

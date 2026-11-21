@@ -173,6 +173,41 @@ export const placeSearchService = {
       )
     })
   },
+
+  /**
+   * Reverse geocode GPS coordinates to a friendly Vietnamese location string
+   */
+  async reverseGeocode(lat: number, lng: number, signal?: AbortSignal): Promise<string> {
+    try {
+      const url = new URL('https://nominatim.openstreetmap.org/reverse')
+      url.searchParams.set('lat', String(lat))
+      url.searchParams.set('lon', String(lng))
+      url.searchParams.set('format', 'json')
+      url.searchParams.set('addressdetails', '1')
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          'Accept-Language': 'vi,en;q=0.9',
+        },
+        signal,
+      })
+
+      if (!response.ok) return ''
+      const data = await response.json()
+      const addr = data.address || {}
+
+      const district = addr.suburb || addr.quarter || addr.district || addr.city_district || addr.county || ''
+      const city = addr.city || addr.province || addr.state || ''
+
+      const parts = [district, city].filter(Boolean)
+      if (parts.length > 0) {
+        return parts.join(', ')
+      }
+      return data.display_name?.split(', ').slice(0, 2).join(', ') || ''
+    } catch {
+      return ''
+    }
+  },
 }
 
 export function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {

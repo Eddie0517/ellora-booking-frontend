@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, MapPin, Sparkles, Navigation, Calendar, Clock } from 'lucide-react'
+import { placeSearchService } from '@/features/salon/services/place-search.service'
+import { toast } from 'sonner'
 
 function getTodayStr() {
   const now = new Date()
@@ -17,6 +19,7 @@ export function HomeSearchSection() {
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
   const [isLocating, setIsLocating] = useState(false)
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [todayStr] = useState(getTodayStr)
 
   const handleSearch = (e: FormEvent) => {
@@ -26,31 +29,30 @@ export function HomeSearchSection() {
     if (location.trim()) params.set('location', location.trim())
     if (date.trim()) params.set('date', date.trim())
     if (time.trim()) params.set('time', time.trim())
+    if (gpsCoords) {
+      params.set('latitude', String(gpsCoords.lat))
+      params.set('longitude', String(gpsCoords.lng))
+      params.set('sort', 'distance')
+    }
     navigate(`/search${params.size ? `?${params.toString()}` : ''}`)
   }
 
-  const handleGetLocation = () => {
-    if (!navigator.geolocation) return
+  const handleGetLocation = async () => {
     setIsLocating(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setIsLocating(false)
-        const params = new URLSearchParams()
-        if (keyword.trim()) params.set('keyword', keyword.trim())
-        if (date.trim()) params.set('date', date.trim())
-        if (time.trim()) params.set('time', time.trim())
-        params.set('latitude', String(pos.coords.latitude))
-        params.set('longitude', String(pos.coords.longitude))
-        params.set('sort', 'distance')
-        navigate(`/search?${params.toString()}`)
-      },
-      () => {
-        setIsLocating(false)
-        // Fallback default
-        setLocation('Hồ Chí Minh')
-      },
-      { timeout: 8000 }
-    )
+    try {
+      const pos = await placeSearchService.getCurrentPosition()
+      setGpsCoords(pos)
+      // Reverse geocode to get real human-readable address
+      const addressName = await placeSearchService.reverseGeocode(pos.lat, pos.lng)
+      const label = addressName || 'Vị trí hiện tại của bạn'
+      setLocation(label)
+      toast.success(`Đã định vị: ${label}`)
+    } catch (err: any) {
+      toast.error(err.message || 'Không thể lấy vị trí GPS. Vui lòng cấp quyền vị trí trên trình duyệt.')
+      setLocation('Hồ Chí Minh')
+    } finally {
+      setIsLocating(false)
+    }
   }
 
   const handleSetToday = () => {
@@ -92,7 +94,10 @@ export function HomeSearchSection() {
               <input
                 id="home-search-location"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(e) => {
+                  setLocation(e.target.value)
+                  setGpsCoords(null)
+                }}
                 placeholder="Quận 1, Bình Thạnh, Cầu Giấy..."
                 className="w-full bg-transparent text-sm sm:text-base font-medium text-gray-900 outline-none placeholder:text-gray-400"
               />
@@ -100,12 +105,16 @@ export function HomeSearchSection() {
             <button
               type="button"
               onClick={handleGetLocation}
-              title="Định vị tiệm gần bạn nhất"
+              title={gpsCoords ? 'Đã định vị GPS. Bấm để lấy lại vị trí' : 'Định vị tiệm gần bạn nhất qua GPS'}
               disabled={isLocating}
-              className="flex shrink-0 items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-600 shadow-2xs transition hover:border-pink-200 hover:text-brand"
+              className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold shadow-2xs transition ${
+                gpsCoords
+                  ? 'border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100'
+                  : 'border-gray-200 bg-white text-gray-600 hover:border-pink-200 hover:text-brand'
+              }`}
             >
-              <Navigation size={13} className={isLocating ? 'animate-spin' : ''} />
-              <span className="hidden xl:inline">Gần tôi</span>
+              <Navigation size={13} className={isLocating ? 'animate-spin text-brand' : gpsCoords ? 'text-sky-600 fill-sky-600' : ''} />
+              <span className="hidden xl:inline">{isLocating ? 'Đang định vị...' : gpsCoords ? 'Đã lấy GPS' : 'Gần tôi'}</span>
             </button>
           </div>
 
@@ -117,7 +126,15 @@ export function HomeSearchSection() {
                 <label htmlFor="home-search-date" className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap">
                   Ngày hẹn
                 </label>
-                {!date && (
+                {date ? (
+                  <button
+                    type="button"
+                    onClick={() => setDate('')}
+                    className="text-[11px] font-semibold text-gray-400 hover:text-rose-600 shrink-0"
+                  >
+                    Xóa
+                  </button>
+                ) : (
                   <button
                     type="button"
                     onClick={handleSetToday}

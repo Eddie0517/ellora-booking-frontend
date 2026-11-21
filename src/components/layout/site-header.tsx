@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Menu, Search, X, Sparkles, User, Calendar, LogOut, LayoutDashboard } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
@@ -12,10 +12,12 @@ const navigationLinks = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const { pathname } = useLocation()
   const user = useAuthStore((state) => state.user)
   const clear = useAuthStore((state) => state.clear)
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,7 +28,35 @@ export function SiteHeader() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Tự động đóng dropdown và mobile menu khi chuyển route
+  useEffect(() => {
+    setUserMenuOpen(false)
+    setOpen(false)
+  }, [pathname])
+
+  // Tự động đóng menu khi click ra ngoài hoặc bấm Escape
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
   const logout = async () => {
+    setUserMenuOpen(false)
+    setOpen(false)
     await jwtAuth.logout()
     clear()
     window.location.assign('/')
@@ -113,11 +143,18 @@ export function SiteHeader() {
           <div className="h-6 w-px bg-gray-200" />
 
           {user ? (
-            <div className="group relative">
+            <div
+              ref={userMenuRef}
+              className="relative"
+              onMouseEnter={() => setUserMenuOpen(true)}
+              onMouseLeave={() => setUserMenuOpen(false)}
+            >
               <button
                 type="button"
+                onClick={() => setUserMenuOpen((prev) => !prev)}
                 className="flex items-center gap-3 rounded-full border border-gray-200/90 p-1.5 pr-4 text-sm font-medium text-gray-700 transition hover:border-pink-200 hover:bg-rose-50/50 shadow-2xs"
                 aria-label="Mở menu tài khoản"
+                aria-expanded={userMenuOpen}
               >
                 {user.avatarUrl ? (
                   <img
@@ -136,43 +173,59 @@ export function SiteHeader() {
               </button>
 
               {/* Profile Dropdown */}
-              <div className="invisible absolute right-0 top-full mt-2 w-56 rounded-2xl border border-gray-100 bg-white p-2 opacity-0 shadow-lg transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                <div className="border-b border-gray-100 px-3 py-2">
-                  <p className="text-xs font-medium text-gray-400">Tài khoản</p>
-                  <p className="truncate text-sm font-semibold text-gray-900">{user.fullName}</p>
-                </div>
+              {userMenuOpen && (
+                <div
+                  className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl transition-all duration-150 z-50 animate-in fade-in zoom-in-95"
+                  role="menu"
+                >
+                  <div className="border-b border-gray-100 px-3 py-2">
+                    <p className="text-xs font-medium text-gray-400">Tài khoản</p>
+                    <p className="truncate text-sm font-semibold text-gray-900">{user.fullName}</p>
+                  </div>
 
-                <div className="py-1">
-                  <Link
-                    to={getDashboardLink()}
-                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-rose-50 hover:text-brand"
-                  >
-                    {user.role === 'CUSTOMER' ? <User size={16} /> : <LayoutDashboard size={16} />}
-                    <span>{user.role === 'CUSTOMER' ? 'Trang cá nhân' : 'Bảng điều khiển'}</span>
-                  </Link>
-
-                  {user.role === 'CUSTOMER' && (
+                  <div className="py-1">
                     <Link
-                      to="/setting/my-bookings"
+                      to={getDashboardLink()}
+                      onClick={() => {
+                        setUserMenuOpen(false)
+                        ;(document.activeElement as HTMLElement)?.blur()
+                      }}
                       className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-rose-50 hover:text-brand"
                     >
-                      <Calendar size={16} />
-                      <span>Lịch hẹn của tôi</span>
+                      {user.role === 'CUSTOMER' ? <User size={16} /> : <LayoutDashboard size={16} />}
+                      <span>{user.role === 'CUSTOMER' ? 'Trang cá nhân' : 'Bảng điều khiển'}</span>
                     </Link>
-                  )}
-                </div>
 
-                <div className="border-t border-gray-100 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => void logout()}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
-                  >
-                    <LogOut size={16} />
-                    <span>Đăng xuất</span>
-                  </button>
+                    {user.role === 'CUSTOMER' && (
+                      <Link
+                        to="/setting/my-bookings"
+                        onClick={() => {
+                          setUserMenuOpen(false)
+                          ;(document.activeElement as HTMLElement)?.blur()
+                        }}
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-rose-50 hover:text-brand"
+                      >
+                        <Calendar size={16} />
+                        <span>Lịch hẹn của tôi</span>
+                      </Link>
+                    )}
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserMenuOpen(false)
+                        void logout()
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
+                    >
+                      <LogOut size={16} />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center gap-3.5">

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { CalendarDays, ShieldCheck, UserRound, Sparkles, Search, LogOut, LifeBuoy, ChevronRight, CheckCircle2, Camera, RefreshCw, Copy } from 'lucide-react'
+import { CalendarDays, ShieldCheck, UserRound, Sparkles, Search, LogOut, LifeBuoy, ChevronRight, CheckCircle2, Camera, RefreshCw } from 'lucide-react'
 import { useUploadAvatar, useUpdateProfile } from '@/features/auth/queries/profile.queries'
 import { apiError } from '@/lib/axios'
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
@@ -160,25 +160,11 @@ export function SettingsLayout() {
                     <CheckCircle2 size={13} className="text-emerald-500" />
                   </span>
                 </p>
-                <div className="mt-2 flex items-center gap-3 text-xs text-gray-400">
-                  <span className="inline-flex items-center gap-1">
-                    ID: <code className="font-mono text-gray-600 font-semibold">{user?.id || '---'}</code>
-                    {user?.id && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(user.id)
-                          toast.success('Đã sao chép mã tài khoản')
-                        }}
-                        className="rounded p-0.5 text-gray-400 hover:text-brand transition"
-                        title="Sao chép ID"
-                      >
-                        <Copy size={12} />
-                      </button>
-                    )}
+                <div className="mt-2 flex items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1.5 text-emerald-600 font-medium">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <span>Tài khoản hoạt động</span>
                   </span>
-                  <span>•</span>
-                  <span className="text-emerald-600 font-medium">Tài khoản hoạt động</span>
                 </div>
               </div>
             </div>

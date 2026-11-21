@@ -16,61 +16,67 @@ export function SiteFooter() {
   }
 
   return (
-    <footer className="border-t border-gray-100 bg-white text-gray-600">
+    <footer className="border-t border-rose-950/40 bg-gradient-to-b from-[#180e16] to-[#120a11] text-rose-100/80">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand Info */}
           <div className="flex flex-col gap-3.5">
-            <Link to="/" className="inline-block transition-opacity hover:opacity-90" aria-label="Trang chủ Ellora">
-              <img
-                src="/ellora-logoHeader.png"
-                alt="Ellora"
-                className="h-12 sm:h-14 w-auto object-contain"
-              />
-            </Link>
-            <p className="max-w-xs text-sm leading-relaxed text-gray-500">
+            <div className="flex h-7 items-center">
+              <Link to="/" className="inline-flex items-center transition-opacity hover:opacity-90" aria-label="Trang chủ Ellora">
+                <img
+                  src="/ellora-logoHeader.png"
+                  alt="Ellora"
+                  className="h-10 w-auto object-contain -ml-1 -mt-0.5"
+                />
+              </Link>
+            </div>
+            <p className="max-w-xs text-sm leading-relaxed text-rose-100/70">
               Nền tảng làm đẹp & đặt lịch salon, kết nối khách hàng và các nghệ nhân làm móng uy tín.
             </p>
           </div>
 
-          {/* Dịch vụ & Khám phá */}
+          {/* Dành cho Salon */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-900">
-              Khám phá
-            </h4>
+            <div className="flex h-7 items-center">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-white">
+                Dành cho salon
+              </h4>
+            </div>
             <ul className="mt-3.5 space-y-2.5 text-sm">
               <li>
-                <Link to="/search" className="transition hover:text-brand">
-                  Tìm kiếm salon
+                <Link to="/for-business" className="transition hover:text-rose-300">
+                  Trở thành đối tác
                 </Link>
               </li>
               <li>
-                <Link to="/search" className="transition hover:text-brand">
-                  Nail Art nghệ thuật
-                </Link>
-              </li>
-              <li>
-                <Link to="/search" className="transition hover:text-brand">
-                  Sơn Gel & Chăm sóc móng
+                <Link to="/business-registration" className="transition hover:text-rose-300">
+                  Đăng ký mở tiệm
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Dành cho Salon */}
+          {/* Dịch vụ & Khám phá (ở giữa Dành cho salon và Hỗ trợ & pháp lý) */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-900">
-              Dành cho salon
-            </h4>
+            <div className="flex h-7 items-center">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-white">
+                Khám phá
+              </h4>
+            </div>
             <ul className="mt-3.5 space-y-2.5 text-sm">
               <li>
-                <Link to="/for-business" className="transition hover:text-brand">
-                  Trở thành đối tác
+                <Link to="/search" className="transition hover:text-rose-300">
+                  Tìm kiếm salon
                 </Link>
               </li>
               <li>
-                <Link to="/business-registration" className="transition hover:text-brand">
-                  Đăng ký mở tiệm
+                <Link to="/search" className="transition hover:text-rose-300">
+                  Nail Art nghệ thuật
+                </Link>
+              </li>
+              <li>
+                <Link to="/search" className="transition hover:text-rose-300">
+                  Sơn Gel & Chăm sóc móng
                 </Link>
               </li>
             </ul>
@@ -78,15 +84,17 @@ export function SiteFooter() {
 
           {/* Hỗ trợ & Chính sách */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-900">
-              Hỗ trợ & Pháp lý
-            </h4>
+            <div className="flex h-7 items-center">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-white">
+                Hỗ trợ & Pháp lý
+              </h4>
+            </div>
             <ul className="mt-3.5 space-y-2.5 text-sm">
               <li>
                 <button
                   type="button"
                   onClick={() => setActiveModal('terms')}
-                  className="cursor-pointer transition hover:text-brand"
+                  className="cursor-pointer transition hover:text-rose-300"
                 >
                   Điều khoản dịch vụ
                 </button>
@@ -95,13 +103,13 @@ export function SiteFooter() {
                 <button
                   type="button"
                   onClick={() => setActiveModal('privacy')}
-                  className="cursor-pointer transition hover:text-brand"
+                  className="cursor-pointer transition hover:text-rose-300"
                 >
                   Chính sách bảo mật
                 </button>
               </li>
               <li>
-                <Link to="/contact" className="transition hover:text-brand">
+                <Link to="/contact" className="transition hover:text-rose-300">
                   Giải đáp thắc mắc & Liên hệ
                 </Link>
               </li>
@@ -110,13 +118,13 @@ export function SiteFooter() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-gray-100 pt-6 text-xs text-gray-400 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs text-rose-200/50 sm:flex-row">
           <p>© 2026 Ellora Booking Platform. Mọi quyền được bảo lưu.</p>
 
           <button
             type="button"
             onClick={scrollToTop}
-            className="inline-flex cursor-pointer items-center gap-1.5 transition hover:text-brand"
+            className="inline-flex cursor-pointer items-center gap-1.5 transition text-rose-200/70 hover:text-white"
             aria-label="Cuộn lên đầu trang"
           >
             <span>Lên đầu trang</span>
