@@ -143,16 +143,15 @@ export function SiteHeader() {
           <div className="h-6 w-px bg-gray-200" />
 
           {user ? (
-            <div
-              ref={userMenuRef}
-              className="relative"
-              onMouseEnter={() => setUserMenuOpen(true)}
-              onMouseLeave={() => setUserMenuOpen(false)}
-            >
+            <div ref={userMenuRef} className="relative">
               <button
                 type="button"
                 onClick={() => setUserMenuOpen((prev) => !prev)}
-                className="flex items-center gap-3 rounded-full border border-gray-200/90 p-1.5 pr-4 text-sm font-medium text-gray-700 transition hover:border-pink-200 hover:bg-rose-50/50 shadow-2xs"
+                className={`flex items-center gap-3 rounded-full border p-1.5 pr-4 text-sm font-medium transition shadow-2xs ${
+                  userMenuOpen
+                    ? 'border-pink-300 bg-rose-50/70 text-brand ring-2 ring-pink-100'
+                    : 'border-gray-200/90 text-gray-700 hover:border-pink-200 hover:bg-rose-50/50'
+                }`}
                 aria-label="Mở menu tài khoản"
                 aria-expanded={userMenuOpen}
               >
