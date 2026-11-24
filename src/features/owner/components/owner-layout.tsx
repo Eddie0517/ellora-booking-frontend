@@ -469,14 +469,9 @@ export function OwnerLayout() {
               }`}
             >
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                    Cơ sở quản lý
-                  </span>
-                  <span className="rounded-md bg-rose-50 border border-pink-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand">
-                    Chủ salon
-                  </span>
-                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  Cơ sở quản lý
+                </span>
                 <div className="flex items-center gap-1">
                   {isOverdueLocked && (
                     <span className="rounded-md bg-red-100 border border-red-300 px-1.5 py-0.5 text-[9px] font-bold text-red-700">
@@ -600,7 +595,10 @@ export function OwnerLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Desktop Top Header with Sound Toggle & Notification Bell */}
         <header className="sticky top-0 z-30 hidden lg:flex h-16 items-center justify-end border-b border-slate-200/80 bg-white/95 px-8 backdrop-blur-md">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3.5">
+            <span className="rounded-xl bg-rose-50 border border-pink-200/90 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-brand shadow-2xs">
+              Chủ salon
+            </span>
             {notificationCluster}
           </div>
         </header>
