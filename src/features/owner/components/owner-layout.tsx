@@ -19,7 +19,6 @@ import {
   AlertTriangle,
   CreditCard,
   Lock,
-  Building2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useOwnerBookings, useOwnerSalon, useOwnerSummary } from '../queries/owner.queries'
@@ -85,7 +84,6 @@ const links = [
   { to: '/owner/analytics', label: 'Báo cáo doanh thu', Icon: LayoutDashboard },
   { to: '/owner/billing', label: 'Phí sàn & Thanh toán', Icon: BadgeDollarSign },
   { to: '/owner/subscription', label: 'Gói dịch vụ', Icon: BadgeDollarSign },
-  { to: '/for-business', label: 'Dành cho đối tác', Icon: Building2 },
 ]
 
 export function OwnerLayout() {
@@ -233,7 +231,7 @@ export function OwnerLayout() {
   }
 
   const initial = user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'O'
-  const isSuspended = salon.data?.status === 'SUSPENDED'
+  const isSuspended = salon.data?.status === 'SUSPENDED' || Boolean(user?.locked)
 
   // Component cụm Nút Bật/Tắt chuông + Chuông thông báo
   const notificationCluster = (
@@ -403,6 +401,13 @@ export function OwnerLayout() {
         </button>
 
         <div className="flex items-center gap-2">
+          {isSuspended && (
+            <SuspendedSalonBadge
+              status="SUSPENDED"
+              badgeVariant="pill"
+              salonName={salon.data?.name}
+            />
+          )}
           {notificationCluster}
 
           <button
@@ -478,7 +483,7 @@ export function OwnerLayout() {
                       Nợ phí quá hạn
                     </span>
                   )}
-                  <SuspendedSalonBadge status={salon.data?.status} salonName={salon.data?.name} />
+                  <SuspendedSalonBadge status={isSuspended ? 'SUSPENDED' : salon.data?.status} salonName={salon.data?.name} />
                 </div>
               </div>
               <p className="mt-1.5 truncate text-sm font-bold text-gray-900">
@@ -613,6 +618,28 @@ export function OwnerLayout() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          {isSuspended && !isOverdueLocked && (
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border-2 border-rose-300 bg-rose-50/90 p-4 text-rose-900 shadow-xs animate-in fade-in">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="size-6 text-rose-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-sm text-rose-800">
+                    Tài khoản salon đang ở trạng thái Tạm ngưng
+                  </h4>
+                  <p className="mt-1 text-xs text-rose-700 font-medium">
+                    Salon tạm thời không hiển thị trên danh sách đặt lịch của khách hàng. Nhấp vào nút "Tạm ngưng" để gửi phản hồi / giải trình đến Ban Quản trị mở lại tài khoản.
+                  </p>
+                </div>
+              </div>
+              <SuspendedSalonBadge
+                status="SUSPENDED"
+                badgeVariant="pill"
+                salonName={salon.data?.name}
+                className="shrink-0 self-start sm:self-center"
+              />
+            </div>
+          )}
+
           {isOverdueLocked && location.pathname === '/owner/billing' && (
             <div className="mb-6 flex items-start gap-3 rounded-2xl border-2 border-red-300 bg-red-50 p-4 text-red-900 shadow-xs animate-in fade-in">
               <AlertTriangle className="size-6 text-red-600 shrink-0 mt-0.5" />

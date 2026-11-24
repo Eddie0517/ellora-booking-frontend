@@ -107,7 +107,7 @@ export function SuspendedSalonBadge({
         className={`group relative inline-flex items-center gap-1.5 rounded-full transition-all cursor-pointer ${
           isPill
             ? 'border border-rose-300 bg-rose-50/95 px-3 py-1 text-xs font-bold text-rose-700 shadow-2xs hover:bg-rose-100 hover:border-rose-400'
-            : 'text-xs font-bold text-rose-600 hover:text-rose-700 underline decoration-rose-300 underline-offset-2'
+            : 'border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 hover:bg-rose-100 hover:border-rose-300 shadow-2xs'
         } ${className}`}
         aria-expanded={isOpen}
         aria-haspopup="dialog"

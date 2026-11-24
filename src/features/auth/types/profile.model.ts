@@ -5,4 +5,5 @@ export interface Profile {
   phone: string
   avatarUrl: string | null
   role: 'CUSTOMER' | 'SALON_OWNER' | 'ADMIN'
+  locked?: boolean
 }
