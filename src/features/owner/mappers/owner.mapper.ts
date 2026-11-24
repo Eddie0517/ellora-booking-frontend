@@ -74,7 +74,7 @@ export class OwnerEmployeeMapper extends BaseMapper<OwnerEmployeeDto, OwnerEmplo
     return { id: safeString(pickField(dto, ['id'])), fullName: safeString(pickField(dto, ['fullName'])), phone: safeString(pickField(dto, ['phone'])), bio: safeString(pickField(dto, ['bio'])), avatarUrl: safeString(pickField(dto, ['avatarUrl'])) || null, active: pickField(dto, ['active']) === true }
   }
   toSaveDto(model: SaveEmployee): SaveEmployeeDto {
-    return { fullName: model.fullName.trim(), phone: model.phone.trim(), bio: model.bio.trim() }
+    return { fullName: model.fullName.trim(), phone: model.phone.trim(), bio: model.bio.trim(), avatarUrl: model.avatarUrl ?? null }
   }
 }
 export class OwnerBookingMapper extends BaseMapper<OwnerBookingDto, OwnerBooking> {

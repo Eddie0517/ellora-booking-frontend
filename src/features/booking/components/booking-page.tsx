@@ -188,6 +188,26 @@ export function BookingPage() {
     )
   }
 
+  if (salon.data?.status === 'SUSPENDED') {
+    return (
+      <main className="mx-auto max-w-2xl px-4 py-20 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 mb-4">
+          <AlertCircle size={32} />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900">Salon tạm ngưng nhận lịch</h1>
+        <p className="mt-2 text-sm text-gray-500">
+          Cơ sở {salon.data.name} hiện đang tạm ngưng hoạt động theo quyết định của ban quản trị Ellora. Vui lòng quay lại khám phá các salon khác.
+        </p>
+        <Link
+          to="/search"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-brand-dark"
+        >
+          Khám phá salon khác
+        </Link>
+      </main>
+    )
+  }
+
   return (
     <main className="mx-auto max-w-4xl px-4 pb-28 pt-8 sm:px-6">
       {/* Top Bar with Navigation */}
@@ -391,11 +411,17 @@ export function BookingPage() {
                         : 'border-gray-200 bg-white hover:border-pink-200'
                     }`}
                   >
-                    <img
-                      src={emp.avatarUrl ?? '/salon-placeholder.svg'}
-                      alt={emp.name}
-                      className="h-12 w-12 rounded-full object-cover border border-gray-100"
-                    />
+                    {emp.avatarUrl ? (
+                      <img
+                        src={emp.avatarUrl}
+                        alt={emp.name}
+                        className="h-12 w-12 rounded-full object-cover border border-gray-100 shadow-2xs"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white border border-gray-200 text-sm font-bold text-gray-700 shadow-2xs">
+                        {(emp.name || '').trim().charAt(0).toUpperCase() || 'N'}
+                      </div>
+                    )}
                     <div>
                       <h3 className="text-sm font-bold text-gray-900">{emp.name}</h3>
                       <p className="text-xs text-gray-500">Chuyên viên làm móng</p>

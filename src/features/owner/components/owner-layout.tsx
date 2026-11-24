@@ -478,7 +478,7 @@ export function OwnerLayout() {
                       Nợ phí quá hạn
                     </span>
                   )}
-                  <SuspendedSalonBadge status={salon.data?.status} />
+                  <SuspendedSalonBadge status={salon.data?.status} salonName={salon.data?.name} />
                 </div>
               </div>
               <p className="mt-1.5 truncate text-sm font-bold text-gray-900">
@@ -594,7 +594,16 @@ export function OwnerLayout() {
       {/* Main Page Content Canvas */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Desktop Top Header with Sound Toggle & Notification Bell */}
-        <header className="sticky top-0 z-30 hidden lg:flex h-16 items-center justify-end border-b border-slate-200/80 bg-white/95 px-8 backdrop-blur-md">
+        <header className="sticky top-0 z-30 hidden lg:flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/95 px-8 backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            {isSuspended && (
+              <SuspendedSalonBadge
+                status="SUSPENDED"
+                badgeVariant="pill"
+                salonName={salon.data?.name}
+              />
+            )}
+          </div>
           <div className="flex items-center gap-3.5">
             <span className="rounded-xl bg-rose-50 border border-pink-200/90 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-brand shadow-2xs">
               Chủ salon

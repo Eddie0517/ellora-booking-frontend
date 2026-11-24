@@ -21,6 +21,7 @@ import { UserLocationSearchBox } from './user-location-search-box'
 import type { Salon } from '../types/salon.model'
 import { useSalons } from '../queries/salon.queries'
 import { calculateDistanceKm } from '../services/place-search.service'
+import { compareSalonsPriority } from '../utils/salon-sort'
 import { useAuthStore } from '@/store/auth.store'
 
 const quickFilters = [
@@ -116,23 +117,28 @@ export function SearchPage() {
   }
 
   // Dynamically compute real-time distance from user GPS if not already populated
-  const displaySalons = (salons.data?.content ?? []).map((salon) => {
-    if (userLocation && salon.coordinates && (salon.distanceKm === null || salon.distanceKm === undefined)) {
-      return {
-        ...salon,
-        distanceKm: calculateDistanceKm(
-          userLocation.lat,
-          userLocation.lng,
-          salon.coordinates.lat,
-          salon.coordinates.lng
-        ),
+  const displaySalons = (salons.data?.content ?? [])
+    .filter((salon) => salon.status !== 'SUSPENDED')
+    .map((salon) => {
+      if (userLocation && salon.coordinates && (salon.distanceKm === null || salon.distanceKm === undefined)) {
+        return {
+          ...salon,
+          distanceKm: calculateDistanceKm(
+            userLocation.lat,
+            userLocation.lng,
+            salon.coordinates.lat,
+            salon.coordinates.lng
+          ),
+        }
       }
-    }
-    return salon
-  })
+      return salon
+    })
 
   if (sort === 'distance' && userLocation) {
     displaySalons.sort((a, b) => (a.distanceKm ?? 9999) - (b.distanceKm ?? 9999))
+  } else {
+    // Default search sorting standard: VIP > Standard > Star Rating (descending)
+    displaySalons.sort(compareSalonsPriority)
   }
 
   const move = (n: number) => {

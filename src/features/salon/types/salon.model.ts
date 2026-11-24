@@ -14,6 +14,7 @@ export interface Salon {
   distanceKm: number | null
   subscriptionTier: 'VIP' | 'STANDARD' | null
   subscriptionBadge: string | null
+  status: string
 }
 
 export interface SalonService {

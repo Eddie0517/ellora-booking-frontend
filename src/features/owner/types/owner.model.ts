@@ -32,7 +32,7 @@ export interface SalonChange { id: string; salonId: string; salonName: string; s
 export interface OwnerService { categoryId: number | null; id: string; name: string; description: string; price: number; durationMinutes: number; active: boolean; imageUrl: string | null }
 export interface OwnerEmployee { id: string; fullName: string; phone: string; bio: string; avatarUrl: string | null; active: boolean }
 export interface SaveService { categoryId?: number | null; imageUrl?: string | null; name: string; description: string; price: number; durationMinutes: number }
-export interface SaveEmployee { fullName: string; phone: string; bio: string }
+export interface SaveEmployee { fullName: string; phone: string; bio: string; avatarUrl?: string | null }
 export interface OwnerBooking {
   id: string
   customerName: string

@@ -62,7 +62,7 @@ export function SalonCard({ salon }: { salon: Salon }) {
               </h3>
               <div className="flex shrink-0 items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
                 <Star size={13} className="fill-amber-400 text-amber-400" />
-                <span>{salon.rating > 0 ? salon.rating.toFixed(1) : '5.0'}</span>
+                <span>{salon.rating > 0 ? salon.rating.toFixed(1) : '0'}</span>
               </div>
             </div>
 
@@ -76,7 +76,7 @@ export function SalonCard({ salon }: { salon: Salon }) {
           {/* Footer: Review count & Quick Booking CTA */}
           <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-xs">
             <span className="text-gray-400">
-              {salon.reviewCount > 0 ? `${salon.reviewCount} đánh giá` : 'Salon mới'}
+              {salon.reviewCount > 0 ? `${salon.reviewCount} đánh giá` : 'Chưa có đánh giá'}
             </span>
 
             <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 font-semibold text-brand transition-colors group-hover:bg-brand group-hover:text-white">

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
 import {
   AlertTriangle,
@@ -8,6 +8,9 @@ import {
   X,
   Clock,
   ShieldAlert,
+  Send,
+  Check,
+  Copy,
 } from 'lucide-react'
 import { useAdminSupport } from '@/features/admin/queries/admin.queries'
 
@@ -15,20 +18,22 @@ interface SuspendedSalonBadgeProps {
   status?: string | null
   className?: string
   badgeVariant?: 'pill' | 'inline'
+  salonName?: string
 }
 
 export function SuspendedSalonBadge({
   status,
   className = '',
   badgeVariant = 'inline',
+  salonName = '',
 }: SuspendedSalonBadgeProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [appealMessage, setAppealMessage] = useState('')
+  const [copied, setCopied] = useState(false)
   const support = useAdminSupport()
 
-  const supportEmail = support.data?.email || 'ellorabooking77@gmail.com'
+  const supportEmail = support.data?.email || 'admin@ellora.vn'
+  const fallbackSupportEmail = 'ellorabooking77@gmail.com'
   const supportPhone = support.data?.phone || '0369589161'
   const supportFacebook =
     support.data?.facebookUrl ||
@@ -36,70 +41,26 @@ export function SuspendedSalonBadge({
 
   const normalizedStatus = status?.toUpperCase()
 
-  const calculatePosition = () => {
-    if (!triggerRef.current) return
-    const rect = triggerRef.current.getBoundingClientRect()
-    const width = 340
-    const isDesktop = window.innerWidth >= 1024
-
-    if (isDesktop) {
-      const top = Math.max(16, Math.min(window.innerHeight - 380, rect.top - 12))
-      const left = Math.min(window.innerWidth - width - 16, rect.right + 12)
-      setPopoverPos({ top, left })
-    } else {
-      const top = Math.min(window.innerHeight - 380, rect.bottom + 8)
-      const left = Math.max(16, Math.min(window.innerWidth - width - 16, rect.left - 60))
-      setPopoverPos({ top, left })
-    }
-  }
-
-  const handleMouseEnter = () => {
-    if (normalizedStatus !== 'SUSPENDED') return
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
-    }
-    calculatePosition()
-    setIsOpen(true)
-  }
-
-  const handleMouseLeave = () => {
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
-    closeTimeoutRef.current = setTimeout(() => {
-      setIsOpen(false)
-    }, 250)
-  }
-
-  const handlePopoverMouseEnter = () => {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
-    }
-  }
-
-  const handlePopoverMouseLeave = () => {
-    setIsOpen(false)
-  }
-
   const handleClick = (e: React.MouseEvent) => {
     if (normalizedStatus === 'SUSPENDED') {
       e.stopPropagation()
-      calculatePosition()
-      setIsOpen((prev) => !prev)
+      setIsOpen(true)
     }
   }
 
-  // Update position on window resize/scroll
-  useEffect(() => {
-    if (!isOpen) return
-    const update = () => calculatePosition()
-    window.addEventListener('resize', update)
-    window.addEventListener('scroll', update, true)
-    return () => {
-      window.removeEventListener('resize', update)
-      window.removeEventListener('scroll', update, true)
-    }
-  }, [isOpen])
+  const handleSendEmail = (e: FormEvent) => {
+    e.preventDefault()
+    const subject = `[Yêu cầu mở lại tài khoản] Phản hồi từ Salon ${salonName ? `"${salonName}"` : ''}`
+    const body = `Kính gửi Ban Quản Trị Ellora,\n\nTôi là chủ sở hữu cơ sở: ${salonName || '(Chưa điền tên)'}\nTrạng thái tài khoản: Tạm ngưng\n\nNội dung phản hồi / Giải trình:\n${appealMessage || 'Đề nghị Ban Quản trị xem xét mở lại hoạt động cho salon của chúng tôi.'}\n\nXin cảm ơn!`
+    const mailtoUrl = `mailto:${supportEmail}?cc=${fallbackSupportEmail}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    window.location.href = mailtoUrl
+  }
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText(supportEmail)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   // Non-suspended badges
   if (normalizedStatus === 'ACTIVE') {
@@ -135,144 +96,169 @@ export function SuspendedSalonBadge({
     )
   }
 
-  // Suspended Status Badge with Interactive Popover
+  // Suspended Status Badge with Interactive Modal
   const isPill = badgeVariant === 'pill'
 
   return (
     <>
       <button
-        ref={triggerRef}
         type="button"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
         onClick={handleClick}
         className={`group relative inline-flex items-center gap-1.5 rounded-full transition-all cursor-pointer ${
           isPill
-            ? 'border border-rose-200 bg-rose-50/90 px-2.5 py-0.5 text-xs font-bold text-rose-700 shadow-2xs hover:bg-rose-100'
-            : 'text-[11px] font-bold text-rose-600 hover:text-rose-700'
+            ? 'border border-rose-300 bg-rose-50/95 px-3 py-1 text-xs font-bold text-rose-700 shadow-2xs hover:bg-rose-100 hover:border-rose-400'
+            : 'text-xs font-bold text-rose-600 hover:text-rose-700 underline decoration-rose-300 underline-offset-2'
         } ${className}`}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
+        title="Nhấp để xem chi tiết và gửi phản hồi tới Admin"
       >
         <span className="relative flex size-2">
           <span className="absolute inline-flex size-full animate-ping rounded-full bg-rose-400 opacity-75" />
           <span className="relative inline-flex size-2 rounded-full bg-rose-600 shadow-[0_0_6px_#e11d48]" />
         </span>
-        <span className="underline decoration-rose-300 underline-offset-2">
-          Đang bị đình chỉ
-        </span>
+        <span>Tạm ngưng</span>
       </button>
 
-      {/* Floating Suspension Notice Window */}
+      {/* Floating Appeal / Feedback Modal */}
       {isOpen &&
-        popoverPos &&
         createPortal(
           <div
-            style={{
-              top: `${popoverPos.top}px`,
-              left: `${popoverPos.left}px`,
-            }}
-            onMouseEnter={handlePopoverMouseEnter}
-            onMouseLeave={handlePopoverMouseLeave}
-            className="fixed z-[9999] w-[340px] max-w-[calc(100vw-32px)] rounded-2xl border border-rose-200/90 bg-white p-4.5 shadow-2xl shadow-rose-950/10 animate-in fade-in zoom-in-95 duration-200 text-left font-sans"
-            role="dialog"
-            aria-label="Thông báo cơ sở bị đình chỉ"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200"
+            onClick={() => setIsOpen(false)}
           >
-            {/* Header */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
-                  <ShieldAlert size={18} />
+            <div
+              className="relative w-full max-w-lg rounded-3xl border border-rose-100 bg-white p-6 sm:p-7 shadow-2xl animate-in zoom-in-95 duration-200 text-left font-sans max-h-[90vh] overflow-y-auto no-scrollbar"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Thông báo cơ sở tạm ngưng & Gửi phản hồi"
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 shadow-xs">
+                    <ShieldAlert size={22} />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-tight">
+                      Tài khoản salon tạm ngưng
+                    </h3>
+                    <p className="mt-0.5 text-xs text-rose-600 font-medium">
+                      Thông báo chính thức từ Ban Quản trị Ellora
+                    </p>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="rounded-full p-1.5 text-gray-400 hover:bg-slate-100 hover:text-gray-700 transition cursor-pointer"
+                  aria-label="Đóng"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Status Explanation Box */}
+              <div className="mt-4 rounded-2xl bg-rose-50/80 border border-rose-200/80 p-4 text-xs leading-relaxed text-gray-700">
+                <div className="flex items-start gap-2.5">
+                  <AlertTriangle size={16} className="text-rose-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-rose-900">
+                      Salon {salonName ? `"${salonName}"` : ''} hiện đang ở trạng thái Tạm ngưng hoạt động.
+                    </p>
+                    <p className="mt-1 text-gray-600">
+                      Trong thời gian này, salon tạm thời không hiển thị trên danh mục tìm kiếm công khai và khách hàng không thể đặt lịch hẹn mới. Bạn vẫn có thể truy cập trang quản trị và gửi giải trình/khiếu nại bên dưới.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appeal Form via Email */}
+              <form onSubmit={handleSendEmail} className="mt-5 space-y-4">
                 <div>
-                  <h4 className="text-sm font-bold text-gray-900 leading-tight">
-                    Cơ sở đang bị đình chỉ
-                  </h4>
-                  <span className="text-[10px] font-semibold text-rose-600 uppercase tracking-wider">
-                    Thông báo từ Ban Quản trị
-                  </span>
+                  <label className="block text-xs font-bold text-gray-800">
+                    Nội dung phản hồi / Đề nghị mở lại cơ sở:
+                  </label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={appealMessage}
+                    onChange={(e) => setAppealMessage(e.target.value)}
+                    placeholder="Mô tả lý do hoặc thông tin giải trình của salon để Ban Quản trị Ellora xem xét kích hoạt lại..."
+                    className="mt-2 w-full rounded-2xl border border-gray-200 bg-gray-50/50 p-3.5 text-xs text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/10 leading-relaxed"
+                  />
                 </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="rounded-lg p-1 text-gray-400 hover:bg-slate-100 hover:text-gray-600 transition"
-                aria-label="Đóng thông báo"
-              >
-                <X size={15} />
-              </button>
-            </div>
 
-            {/* Explanation Message */}
-            <div className="mt-3 rounded-xl bg-rose-50/70 border border-rose-100 p-3 text-xs leading-relaxed text-gray-700">
-              <div className="flex items-start gap-1.5">
-                <AlertTriangle size={14} className="text-rose-500 shrink-0 mt-0.5" />
-                <p>
-                  Salon hiện đang bị <strong>tạm dừng hoạt động</strong> trên hệ thống
-                  Ellora theo quyết định của Quản trị viên. Trong thời gian này, khách hàng
-                  không thể tìm thấy hoặc đặt lịch mới tại cơ sở.
-                </p>
-              </div>
-            </div>
-
-            {/* Ellora Contact Support Details */}
-            <div className="mt-3.5 pt-3 border-t border-slate-100">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-1.5">
-                Thông tin liên hệ hỗ trợ Ellora
-              </p>
-
-              <div className="space-y-1.5 text-xs">
-                {/* Phone */}
-                <a
-                  href={`tel:${supportPhone}`}
-                  className="flex items-center justify-between rounded-lg p-2 hover:bg-slate-50 border border-transparent hover:border-slate-200 transition group"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Phone size={14} className="text-brand shrink-0" />
-                    <span className="text-gray-600 font-medium">Hotline hỗ trợ:</span>
-                  </div>
-                  <span className="font-bold text-gray-900 group-hover:text-brand transition">
-                    {supportPhone}
-                  </span>
-                </a>
-
-                {/* Email */}
-                <a
-                  href={`mailto:${supportEmail}`}
-                  className="flex items-center justify-between rounded-lg p-2 hover:bg-slate-50 border border-transparent hover:border-slate-200 transition group"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Mail size={14} className="text-brand shrink-0" />
-                    <span className="text-gray-600 font-medium">Email:</span>
-                  </div>
-                  <span className="font-semibold text-gray-900 truncate max-w-[170px] group-hover:text-brand transition">
-                    {supportEmail}
-                  </span>
-                </a>
-
-                {/* Facebook */}
-                {supportFacebook && (
-                  <a
-                    href={supportFacebook}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-between rounded-lg p-2 hover:bg-slate-50 border border-transparent hover:border-slate-200 transition group"
+                <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                  <button
+                    type="submit"
+                    className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-brand py-3 px-4 text-xs font-bold text-white shadow-xs hover:bg-brand-dark transition active:scale-95 cursor-pointer"
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <ExternalLink size={14} className="text-brand shrink-0" />
-                      <span className="text-gray-600 font-medium">Kênh hỗ trợ:</span>
-                    </div>
-                    <span className="font-semibold text-brand group-hover:underline">
-                      Hỗ trợ trực tuyến ↗
-                    </span>
-                  </a>
-                )}
-              </div>
+                    <Send size={14} />
+                    <span>Gửi phản hồi qua Email tới Admin</span>
+                  </button>
 
-              {/* Working hours notice */}
-              <div className="mt-2.5 flex items-center gap-1.5 text-[10px] text-gray-400 font-medium px-1">
-                <Clock size={11} className="shrink-0" />
-                <span>Thời gian hỗ trợ: 8:00 - 22:00 (Hàng ngày)</span>
+                  <button
+                    type="button"
+                    onClick={handleCopyEmail}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white py-3 px-4 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition active:scale-95 cursor-pointer"
+                    title="Sao chép địa chỉ email của admin"
+                  >
+                    {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                    <span>{copied ? 'Đã sao chép' : 'Chép email'}</span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Support Contact Info */}
+              <div className="mt-5 pt-4 border-t border-gray-100">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">
+                  Thông tin hỗ trợ trực tiếp từ Ellora
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <a
+                    href={`mailto:${supportEmail}`}
+                    className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50/60 p-2.5 hover:bg-rose-50/60 hover:border-pink-200 transition"
+                  >
+                    <Mail size={15} className="text-brand shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-gray-400">Email quản trị viên</p>
+                      <p className="font-semibold text-gray-900 truncate">{supportEmail}</p>
+                    </div>
+                  </a>
+
+                  <a
+                    href={`tel:${supportPhone}`}
+                    className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50/60 p-2.5 hover:bg-rose-50/60 hover:border-pink-200 transition"
+                  >
+                    <Phone size={15} className="text-brand shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-gray-400">Hotline hỗ trợ</p>
+                      <p className="font-semibold text-gray-900 truncate">{supportPhone}</p>
+                    </div>
+                  </a>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between text-[11px] text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <Clock size={12} />
+                    <span>Thời gian hỗ trợ: 8:00 - 22:00</span>
+                  </div>
+                  {supportFacebook && (
+                    <a
+                      href={supportFacebook}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-brand hover:underline inline-flex items-center gap-1"
+                    >
+                      <span>Fanpage hỗ trợ</span>
+                      <ExternalLink size={11} />
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </div>,

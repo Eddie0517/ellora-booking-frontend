@@ -72,7 +72,7 @@ export interface OwnerEmployeeDto {
 }
 
 export interface SaveServiceDto { categoryId?: number | null; imageUrl?: string | null; name: string; description: string; price: number; durationMinutes: number }
-export interface SaveEmployeeDto { fullName: string; phone: string; bio: string }
+export interface SaveEmployeeDto { fullName: string; phone: string; bio: string; avatarUrl?: string | null }
 
 export interface OwnerBookingDto {
   id?: number | string | null

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Compass, ArrowRight } from 'lucide-react'
 import { SalonCard } from '@/features/salon/components/salon-card'
 import { useSalons } from '@/features/salon/queries/salon.queries'
+import { compareSalonsPriority } from '@/features/salon/utils/salon-sort'
 import type { Salon } from '@/features/salon/types/salon.model'
 
 // Curated Fallback Salons if backend has 0 results or offline during dev
@@ -24,6 +25,7 @@ const curatedSalons: Salon[] = [
     distanceKm: 0.8,
     logoUrl: null, showcaseImages: [], subscriptionTier: 'VIP',
     subscriptionBadge: '✦ Salon VIP',
+    status: 'ACTIVE',
   },
   {
     id: 'salon-2',
@@ -41,6 +43,7 @@ const curatedSalons: Salon[] = [
     distanceKm: 1.4,
     logoUrl: null, showcaseImages: [], subscriptionTier: 'VIP',
     subscriptionBadge: '✦ Đối tác hàng đầu',
+    status: 'ACTIVE',
   },
   {
     id: 'salon-3',
@@ -58,6 +61,7 @@ const curatedSalons: Salon[] = [
     distanceKm: 3.2,
     logoUrl: null, showcaseImages: [], subscriptionTier: 'STANDARD',
     subscriptionBadge: 'Yêu thích nhất',
+    status: 'ACTIVE',
   },
   {
     id: 'salon-4',
@@ -75,6 +79,7 @@ const curatedSalons: Salon[] = [
     distanceKm: 2.1,
     logoUrl: null, showcaseImages: [], subscriptionTier: 'STANDARD',
     subscriptionBadge: 'Đặt nhiều',
+    status: 'ACTIVE',
   },
 ]
 
@@ -91,10 +96,15 @@ export function HomeRecommendations() {
   const salonsQuery = useSalons({ page: 0, size: 8 })
 
   // Use API salons if available, otherwise use curated fallback list
-  const displaySalons =
+  // Priority order: VIP > STANDARD > rating (descending)
+  const baseSalons =
     salonsQuery.data?.content && salonsQuery.data.content.length > 0
       ? salonsQuery.data.content
       : curatedSalons
+
+  const displaySalons = [...baseSalons]
+    .filter((s) => s.status !== 'SUSPENDED')
+    .sort(compareSalonsPriority)
 
   return (
     <section className="bg-gray-50/50 pt-20 pb-16 sm:pt-28 sm:pb-24 lg:pt-32 lg:pb-28">

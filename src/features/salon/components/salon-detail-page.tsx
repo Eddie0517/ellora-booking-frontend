@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   MapPin,
@@ -11,6 +11,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Images,
+  X,
+  AlertTriangle,
 } from 'lucide-react'
 import {
   useSalon,
@@ -234,6 +237,42 @@ export function SalonDetailPage() {
   }
 
   const item = salon.data
+  const allImages = [
+    ...new Set([
+      ...(item.showcaseImages || []).filter(Boolean),
+      ...(item.images || []).filter(Boolean),
+    ]),
+  ].filter((url) => !url.includes('salon-placeholder.svg'))
+
+  const galleryImages = allImages.length > 0 ? allImages : item.images
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0)
+
+  const openGallery = (idx: number) => {
+    setActivePhotoIdx(Math.max(0, Math.min(idx, galleryImages.length - 1)))
+    setGalleryOpen(true)
+  }
+
+  const prevPhoto = () => {
+    setActivePhotoIdx((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1))
+  }
+
+  const nextPhoto = () => {
+    setActivePhotoIdx((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0))
+  }
+
+  // Keyboard navigation for gallery
+  useEffect(() => {
+    if (!galleryOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') prevPhoto()
+      else if (e.key === 'ArrowRight') nextPhoto()
+      else if (e.key === 'Escape') setGalleryOpen(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [galleryOpen, galleryImages.length])
+
   const address = [...new Set([item.address, item.district, item.city].filter(Boolean))].join(', ')
   const directionsUrl = item.coordinates
     ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${item.coordinates.lat},${item.coordinates.lng}`)}`
@@ -271,31 +310,71 @@ export function SalonDetailPage() {
             <span>Quay lại</span>
           </Link>
 
+          <button
+            type="button"
+            onClick={() => openGallery(0)}
+            className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full border border-gray-200 bg-white/95 px-4 py-2 text-xs font-bold text-gray-800 shadow-md backdrop-blur-md transition hover:bg-white hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <Images size={15} className="text-brand" />
+            <span>Xem tất cả {galleryImages.length} hình ảnh</span>
+          </button>
+
           <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-2 h-[340px] sm:h-[420px] md:h-[480px]">
             {/* Main Primary Image */}
-            <div className="md:col-span-2 md:row-span-2 h-full overflow-hidden bg-gray-100">
+            <div
+              onClick={() => openGallery(0)}
+              className="group relative md:col-span-2 md:row-span-2 h-full overflow-hidden bg-gray-100 cursor-pointer"
+            >
               <img
                 src={(item.showcaseImages && item.showcaseImages[0]) || item.images[0] || DEFAULT_BENTO_PLACEHOLDERS[0]}
                 alt={`Không gian chính tại ${item.name}`}
-                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
             </div>
 
             {/* Supporting Images */}
             {[1, 2, 3, 4].map((idx) => {
-              const imgUrl = (item.showcaseImages && item.showcaseImages[idx]) || DEFAULT_BENTO_PLACEHOLDERS[idx]
+              const imgUrl = (item.showcaseImages && item.showcaseImages[idx]) || item.images[idx] || DEFAULT_BENTO_PLACEHOLDERS[idx]
+              const isLast = idx === 4
+              const remaining = galleryImages.length - 5
               return (
-                <div key={idx} className="hidden md:block h-full overflow-hidden bg-gray-100">
+                <div
+                  key={idx}
+                  onClick={() => openGallery(idx)}
+                  className="group relative hidden md:block h-full overflow-hidden bg-gray-100 cursor-pointer"
+                >
                   <img
                     src={imgUrl}
                     alt={`${item.name} - Ảnh ${idx + 1}`}
-                    className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
+                  {isLast && remaining > 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/55 text-white font-bold text-sm backdrop-blur-xs transition group-hover:bg-black/65">
+                      +{remaining} ảnh
+                    </div>
+                  )}
                 </div>
               )
             })}
           </div>
         </div>
+
+        {/* Suspended Alert Banner if salon is SUSPENDED */}
+        {item.status === 'SUSPENDED' && (
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border-2 border-rose-200 bg-rose-50 p-4 text-rose-900 shadow-xs">
+            <AlertTriangle className="size-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="text-xs">
+              <h4 className="font-bold text-sm text-rose-800">
+                Salon hiện đang tạm ngưng hoạt động
+              </h4>
+              <p className="mt-1 text-rose-700 font-medium">
+                Cơ sở này đang tạm ngưng phục vụ theo quyết định từ ban quản trị Ellora. Hiện tại tiệm không thể tiếp nhận lịch hẹn mới từ khách hàng.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Main Content Layout with 2 Columns */}
         <div className="mt-10 grid gap-10 lg:grid-cols-12">
@@ -324,7 +403,7 @@ export function SalonDetailPage() {
                     )}
                     <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
                       <Star size={13} className="fill-amber-400 text-amber-400" />
-                      <span>{item.rating > 0 ? item.rating.toFixed(1) : '5.0'}</span>
+                      <span>{item.rating > 0 ? item.rating.toFixed(1) : '0'}</span>
                     </span>
                     <a
                       href="#reviews"
@@ -503,13 +582,23 @@ export function SalonDetailPage() {
                 </div>
               </div>
 
-              <Link
-                to={`/booking?salonId=${item.id}`}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3.5 text-center text-sm font-semibold text-white shadow-xs transition hover:bg-brand-dark active:scale-[0.98]"
-              >
-                <Calendar size={16} />
-                <span>Đặt lịch hẹn ngay</span>
-              </Link>
+              {item.status === 'SUSPENDED' ? (
+                <button
+                  type="button"
+                  disabled
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gray-200 py-3.5 text-center text-sm font-semibold text-gray-500 cursor-not-allowed"
+                >
+                  <span>Salon tạm ngưng nhận lịch</span>
+                </button>
+              ) : (
+                <Link
+                  to={`/booking?salonId=${item.id}`}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3.5 text-center text-sm font-semibold text-white shadow-xs transition hover:bg-brand-dark active:scale-[0.98]"
+                >
+                  <Calendar size={16} />
+                  <span>Đặt lịch hẹn ngay</span>
+                </Link>
+              )}
 
               {directionsUrl && (
                 <div className="mt-5 border-t border-gray-100 pt-4 text-center">
@@ -528,6 +617,96 @@ export function SalonDetailPage() {
           </aside>
         </div>
       </div>
+
+      {/* Full Photo Gallery Lightbox Modal */}
+      {galleryOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-md text-white animate-in fade-in duration-200"
+        >
+          {/* Top Bar */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0">
+            <div className="flex items-center gap-3">
+              <Images size={20} className="text-pink-400" />
+              <div>
+                <h3 className="text-sm font-bold truncate max-w-sm sm:max-w-md">
+                  {item.name}
+                </h3>
+                <span className="text-xs text-gray-400">
+                  Ảnh {activePhotoIdx + 1} trên tổng số {galleryImages.length}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setGalleryOpen(false)}
+              className="rounded-full bg-white/10 p-2 text-white hover:bg-white/20 active:scale-95 transition cursor-pointer"
+              aria-label="Đóng thư viện ảnh"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Main Photo Area */}
+          <div className="relative flex-1 flex items-center justify-center p-4 min-h-0 select-none">
+            {galleryImages.length > 1 && (
+              <button
+                type="button"
+                onClick={prevPhoto}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex size-12 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/30 backdrop-blur-md transition active:scale-90 cursor-pointer"
+                aria-label="Ảnh trước"
+              >
+                <ChevronLeft size={28} />
+              </button>
+            )}
+
+            <div className="max-h-full max-w-full flex items-center justify-center p-2">
+              <img
+                src={galleryImages[activePhotoIdx]}
+                alt={`${item.name} - Ảnh ${activePhotoIdx + 1}`}
+                className="max-h-[70vh] sm:max-h-[75vh] w-auto max-w-full object-contain rounded-2xl shadow-2xl transition-all duration-300"
+              />
+            </div>
+
+            {galleryImages.length > 1 && (
+              <button
+                type="button"
+                onClick={nextPhoto}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex size-12 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/30 backdrop-blur-md transition active:scale-90 cursor-pointer"
+                aria-label="Ảnh sau"
+              >
+                <ChevronRight size={28} />
+              </button>
+            )}
+          </div>
+
+          {/* Thumbnail Strip */}
+          <div className="px-6 py-3 border-t border-white/10 bg-black/40 shrink-0">
+            <div className="flex gap-2 overflow-x-auto justify-center py-1 no-scrollbar">
+              {galleryImages.map((img, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setActivePhotoIdx(i)}
+                  className={`size-14 sm:size-16 shrink-0 overflow-hidden rounded-xl border-2 transition-all cursor-pointer ${
+                    i === activePhotoIdx
+                      ? 'border-pink-500 scale-105 shadow-md ring-2 ring-pink-500/50'
+                      : 'border-transparent opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img
+                    src={img}
+                    alt={`Thumbnail ${i + 1}`}
+                    className="size-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

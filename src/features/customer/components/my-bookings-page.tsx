@@ -132,7 +132,8 @@ export function MyBookingsPage() {
       setMessage(text)
       toast.success(text)
       setComment('')
-      void detail.refetch()
+      setId('')
+      void bookings.refetch()
     } catch (error) {
       const err = apiError(error)
       setMessage(err)

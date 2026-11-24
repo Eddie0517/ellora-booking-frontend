@@ -4,24 +4,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useConfirm } from '@/hooks/use-confirm'
 import { apiError } from '@/lib/axios'
-import { useOwnerEmployees, useRemoveOwnerEmployee, useSaveOwnerEmployee } from '../queries/owner.queries'
+import { useOwnerEmployees, useRemoveOwnerEmployee, useSaveOwnerEmployee, useUploadOwnerImage } from '../queries/owner.queries'
 import type { OwnerEmployee, SaveEmployee } from '../types/owner.model'
 
-const empty: SaveEmployee = { fullName: '', phone: '', bio: '' }
+const empty: SaveEmployee = { fullName: '', phone: '', bio: '', avatarUrl: null }
 
 export function OwnerStaffPage() {
   const { confirm } = useConfirm()
   const staff = useOwnerEmployees()
   const save = useSaveOwnerEmployee()
   const remove = useRemoveOwnerEmployee()
+  const upload = useUploadOwnerImage()
   const [editing, setEditing] = useState<string | null>(null)
   const [draft, setDraft] = useState<SaveEmployee>(empty)
   const [open, setOpen] = useState(false)
 
   const edit = (employee?: OwnerEmployee) => {
     save.reset()
+    upload.reset()
     setEditing(employee?.id ?? null)
-    setDraft(employee ? { fullName: employee.fullName, phone: employee.phone, bio: employee.bio } : empty)
+    setDraft(employee ? { fullName: employee.fullName, phone: employee.phone, bio: employee.bio, avatarUrl: employee.avatarUrl } : empty)
     setOpen(true)
   }
 
@@ -52,15 +54,60 @@ export function OwnerStaffPage() {
       <Button type="button" onClick={() => edit()} className="h-10 bg-primary-action px-5 text-white font-semibold shadow-xs hover:bg-primary-action/90">Thêm nhân viên</Button>
     </div>
 
-    <Dialog open={open} onOpenChange={next => { if (!next && save.isPending) return; setOpen(next) }}>
+    <Dialog open={open} onOpenChange={next => { if (!next && (save.isPending || upload.isPending)) return; setOpen(next) }}>
       <DialogContent>
       <DialogHeader><DialogTitle>{editing ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên'}</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
       <label className="text-sm">Họ và tên<input required value={draft.fullName} onChange={event => setDraft({ ...draft, fullName: event.target.value })} className="mt-2 w-full rounded-lg border p-3" /></label>
       <label className="text-sm">Số điện thoại<input required type="tel" maxLength={20} value={draft.phone} onChange={event => setDraft({ ...draft, phone: event.target.value })} className="mt-2 w-full rounded-lg border p-3" /></label>
+      
+      {/* Upload staff avatar */}
+      <div className="sm:col-span-2">
+        <label className="text-sm font-medium text-gray-700">Ảnh nhân viên</label>
+        <div className="mt-2 flex items-center gap-4">
+          {draft.avatarUrl ? (
+            <img
+              src={draft.avatarUrl}
+              alt="Ảnh đại diện"
+              className="h-14 w-14 rounded-full object-cover border border-gray-200 shadow-xs"
+            />
+          ) : (
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white border border-gray-200 text-lg font-bold text-gray-700 shadow-xs">
+              {(draft.fullName || '').trim().charAt(0).toUpperCase() || 'N'}
+            </div>
+          )}
+          <div className="flex flex-col gap-1.5">
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (file) {
+                  upload.mutate(file, {
+                    onSuccess: (url) => setDraft((c) => ({ ...c, avatarUrl: url })),
+                  })
+                }
+              }}
+              className="text-xs text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-rose-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand hover:file:bg-rose-100 cursor-pointer"
+            />
+            {upload.isPending && <span className="text-xs text-gray-500">Đang tải ảnh lên...</span>}
+            {upload.isError && <span role="alert" className="text-xs text-red-600">{apiError(upload.error)}</span>}
+            {draft.avatarUrl && (
+              <button
+                type="button"
+                onClick={() => setDraft((c) => ({ ...c, avatarUrl: null }))}
+                className="text-xs text-rose-600 hover:underline text-left cursor-pointer"
+              >
+                Xóa ảnh (dùng ảnh trắng mặc định)
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       <label className="text-sm sm:col-span-2">Giới thiệu<textarea maxLength={1000} value={draft.bio} onChange={event => setDraft({ ...draft, bio: event.target.value })} className="mt-2 w-full rounded-lg border p-3" /></label>
       <div className="flex gap-3 sm:col-span-2">
-        <Button disabled={save.isPending} className="h-10 bg-primary-action px-5 text-white font-semibold shadow-xs hover:bg-primary-action/90">{save.isPending ? 'Đang lưu…' : 'Lưu nhân viên'}</Button>
+        <Button disabled={save.isPending || upload.isPending} className="h-10 bg-primary-action px-5 text-white font-semibold shadow-xs hover:bg-primary-action/90">{save.isPending ? 'Đang lưu…' : 'Lưu nhân viên'}</Button>
         <Button type="button" variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
       </div>
       {save.isError && <p role="alert" className="text-red-700 sm:col-span-2">{apiError(save.error)}</p>}
@@ -81,7 +128,15 @@ export function OwnerStaffPage() {
         </TableHeader>
         <TableBody>
           {staff.data.map(employee => <TableRow key={employee.id}>
-            <TableCell><img src={employee.avatarUrl || '/salon-placeholder.svg'} alt="" className="h-11 w-11 rounded-full object-cover" /></TableCell>
+            <TableCell>
+              {employee.avatarUrl ? (
+                <img src={employee.avatarUrl} alt={employee.fullName} className="h-11 w-11 rounded-full object-cover border border-gray-100 shadow-2xs" />
+              ) : (
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white border border-gray-200 text-sm font-bold text-gray-700 shadow-2xs">
+                  {(employee.fullName || '').trim().charAt(0).toUpperCase() || 'N'}
+                </div>
+              )}
+            </TableCell>
             <TableCell className="font-semibold text-gray-900">{employee.fullName}</TableCell>
             <TableCell className="whitespace-nowrap text-gray-600">{employee.phone || '—'}</TableCell>
             <TableCell className="max-w-[360px] truncate text-gray-600" title={employee.bio}>{employee.bio || '—'}</TableCell>

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useConfirm } from '@/hooks/use-confirm'
 import { apiError } from '@/lib/axios'
-import { useOwnerServices, useRemoveOwnerService, useSaveOwnerService, useUploadOwnerImage } from '../queries/owner.queries'
+import { useOwnerServices, useRemoveOwnerService, useSaveOwnerService } from '../queries/owner.queries'
 import type { OwnerService, SaveService } from '../types/owner.model'
 
 const empty: SaveService = { name: '', description: '', price: 0, durationMinutes: 30 }
@@ -14,14 +14,12 @@ export function OwnerServicesPage() {
   const services = useOwnerServices()
   const save = useSaveOwnerService()
   const remove = useRemoveOwnerService()
-  const upload = useUploadOwnerImage()
   const [editing, setEditing] = useState<string | null>(null)
   const [draft, setDraft] = useState<SaveService>(empty)
   const [open, setOpen] = useState(false)
 
   const edit = (service?: OwnerService) => {
     save.reset()
-    upload.reset()
     setEditing(service?.id ?? null)
     setDraft(service ? {
       name: service.name,
@@ -61,7 +59,7 @@ export function OwnerServicesPage() {
       <Button type="button" onClick={() => edit()} className="h-10 bg-primary-action px-5 text-white font-semibold shadow-xs hover:bg-primary-action/90">Thêm dịch vụ</Button>
     </div>
 
-    <Dialog open={open} onOpenChange={next => { if (!next && (save.isPending || upload.isPending)) return; setOpen(next) }}>
+    <Dialog open={open} onOpenChange={next => { if (!next && save.isPending) return; setOpen(next) }}>
       <DialogContent>
       <DialogHeader><DialogTitle>{editing ? 'Chỉnh sửa dịch vụ' : 'Thêm dịch vụ'}</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
@@ -69,15 +67,8 @@ export function OwnerServicesPage() {
       <label className="text-sm">Giá (₫)<input required min={0} type="number" value={draft.price} onChange={event => setDraft({ ...draft, price: Number(event.target.value) })} className="mt-2 w-full rounded-lg border p-3" /></label>
       <label className="text-sm">Thời lượng (phút)<input required min={5} type="number" value={draft.durationMinutes} onChange={event => setDraft({ ...draft, durationMinutes: Number(event.target.value) })} className="mt-2 w-full rounded-lg border p-3" /></label>
       <label className="text-sm">Mô tả<input value={draft.description} onChange={event => setDraft({ ...draft, description: event.target.value })} className="mt-2 w-full rounded-lg border p-3" /></label>
-      <label className="text-sm sm:col-span-2">Ảnh dịch vụ<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
-        const file = event.target.files?.[0]
-        if (file) upload.mutate(file, { onSuccess: url => setDraft(current => ({ ...current, imageUrl: url })) })
-      }} className="mt-2 block" />
-        {draft.imageUrl && <img src={draft.imageUrl} alt="Ảnh dịch vụ" className="mt-2 h-24 w-24 rounded object-cover" />}
-        {upload.isError && <span role="alert">Không tải được ảnh: {apiError(upload.error)}</span>}
-      </label>
       <div className="flex gap-3 sm:col-span-2">
-        <Button disabled={save.isPending || upload.isPending} className="h-10 bg-primary-action px-5 text-white font-semibold shadow-xs hover:bg-primary-action/90">{save.isPending ? 'Đang lưu…' : 'Lưu dịch vụ'}</Button>
+        <Button disabled={save.isPending} className="h-10 bg-primary-action px-5 text-white font-semibold shadow-xs hover:bg-primary-action/90">{save.isPending ? 'Đang lưu…' : 'Lưu dịch vụ'}</Button>
         <Button type="button" variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
       </div>
       {save.isError && <p role="alert" className="text-red-700 sm:col-span-2">{apiError(save.error)}</p>}

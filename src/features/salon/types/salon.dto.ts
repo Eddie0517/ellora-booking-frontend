@@ -13,6 +13,7 @@ export interface SalonDto {
   longitude?: number | string | null
   distanceKm?: number | string | null
   subscriptionTier?: string | null
+  status?: string | null
 }
 
 export interface ServiceDto {

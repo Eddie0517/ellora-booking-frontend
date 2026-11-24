@@ -30,6 +30,7 @@ export class SalonMapper extends BaseMapper<SalonDto, Salon> {
       distanceKm: safeNumber(pickField(dto, ['distanceKm']), NaN) >= 0 ? safeNumber(pickField(dto, ['distanceKm'])) : null,
       subscriptionTier,
       subscriptionBadge: subscriptionTier === 'VIP' ? 'Shop đối tác' : subscriptionTier === 'STANDARD' ? 'Shop yêu thích' : null,
+      status: safeString(pickField(dto, ['status'])) || 'ACTIVE',
     }
   }
   toPageModel(dto: PageDto<SalonDto> | null | undefined): PageModel<Salon> {
