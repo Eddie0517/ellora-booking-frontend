@@ -212,49 +212,26 @@ export function SalonDetailPage() {
   const salon = useSalon(id)
   const services = useSalonServices(id)
 
-  if (salon.isPending) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
-        <div className="h-10 w-10 mx-auto animate-spin rounded-full border-2 border-brand border-t-transparent" />
-        <p className="mt-4 text-sm text-gray-500">Đang tải thông tin salon...</p>
-      </div>
-    )
-  }
-
-  if (salon.isError || !salon.data) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
-        <p className="text-base font-semibold text-red-600">Không thể tải thông tin salon.</p>
-        <Link
-          to="/search"
-          className="mt-4 inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2 text-xs font-semibold text-white shadow-xs"
-        >
-          <ArrowLeft size={14} />
-          <span>Quay lại tìm kiếm</span>
-        </Link>
-      </div>
-    )
-  }
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0)
 
   const item = salon.data
   const allImages = [
     ...new Set([
-      ...(item.showcaseImages || []).filter(Boolean),
-      ...(item.images || []).filter(Boolean),
+      ...(item?.showcaseImages || []).filter(Boolean),
+      ...(item?.images || []).filter(Boolean),
     ]),
   ].filter((url) => !url.includes('salon-placeholder.svg'))
 
-  const galleryImages = allImages.length > 0 ? allImages : item.images
-  const [galleryOpen, setGalleryOpen] = useState(false)
-  const [activePhotoIdx, setActivePhotoIdx] = useState(0)
+  const galleryImages = allImages.length > 0 ? allImages : (item?.images || [])
 
   const openGallery = (idx: number) => {
-    setActivePhotoIdx(Math.max(0, Math.min(idx, galleryImages.length - 1)))
+    setActivePhotoIdx(Math.max(0, Math.min(idx, Math.max(0, galleryImages.length - 1))))
     setGalleryOpen(true)
   }
 
   const prevPhoto = () => {
-    setActivePhotoIdx((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1))
+    setActivePhotoIdx((prev) => (prev > 0 ? prev - 1 : Math.max(0, galleryImages.length - 1)))
   }
 
   const nextPhoto = () => {
@@ -272,6 +249,30 @@ export function SalonDetailPage() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [galleryOpen, galleryImages.length])
+
+  if (salon.isPending) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
+        <div className="h-10 w-10 mx-auto animate-spin rounded-full border-2 border-brand border-t-transparent" />
+        <p className="mt-4 text-sm text-gray-500">Đang tải thông tin salon...</p>
+      </div>
+    )
+  }
+
+  if (salon.isError || !salon.data || !item) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
+        <p className="text-base font-semibold text-red-600">Không thể tải thông tin salon.</p>
+        <Link
+          to="/search"
+          className="mt-4 inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2 text-xs font-semibold text-white shadow-xs"
+        >
+          <ArrowLeft size={14} />
+          <span>Quay lại tìm kiếm</span>
+        </Link>
+      </div>
+    )
+  }
 
   const address = [...new Set([item.address, item.district, item.city].filter(Boolean))].join(', ')
   const directionsUrl = item.coordinates
