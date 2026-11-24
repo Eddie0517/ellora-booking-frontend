@@ -125,15 +125,10 @@ export function OwnerDashboardPage() {
       {/* Page Header & Quick Actions */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
-              Phân tích dữ liệu
-            </h1>
-            <span className="rounded-full bg-rose-100/70 px-2.5 py-0.5 text-xs font-bold text-brand">
-              Live
-            </span>
-          </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-[#8C3A5A]">
+            Tổng quan salon
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">
             Theo dõi hiệu suất kinh doanh thực tế của cơ sở{' '}
             <strong className="text-gray-800 font-semibold">{salon.data?.name || '...'}</strong>
           </p>

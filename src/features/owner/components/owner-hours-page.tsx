@@ -234,10 +234,10 @@ export function OwnerHoursPage() {
     <div className="space-y-6">
       {/* Tiêu đề trang */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 font-serif">
+        <h1 className="text-2xl font-bold text-[#8C3A5A]">
           Giờ mở cửa &amp; ngày nghỉ
         </h1>
-        <p className="mt-1.5 text-xs sm:text-sm text-gray-600">
+        <p className="mt-1 text-sm text-gray-600">
           Chọn ngày trên lịch để chỉnh giờ theo thứ hoặc đặt ngày nghỉ riêng. Giờ Việt Nam · mốc 30 phút.
         </p>
       </div>

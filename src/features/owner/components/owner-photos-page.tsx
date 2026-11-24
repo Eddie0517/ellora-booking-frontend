@@ -206,17 +206,16 @@ function BentoShowcaseStudio({ imageUrls }: { imageUrls: string[] }) {
   return (
     <section className="rounded-3xl border border-pink-100 bg-gradient-to-br from-rose-50/40 via-white to-pink-50/20 p-6 shadow-sm space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-100/80 px-3 py-1 text-xs font-bold text-brand mb-2">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-100/80 px-3 py-1 text-xs font-bold text-brand mb-1">
             <Layers size={13} />
             <span>Studio thiết kế khung Bento Showcase</span>
           </div>
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-gray-900">
             Khung ảnh 5 vị trí trên trang chi tiết Salon
           </h2>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1 max-w-2xl">
-            Tùy biến từng ô ảnh để hiển thị không gian, dịch vụ nổi bật của salon đến khách hàng.
-            Mỗi vị trí có thể tải ảnh riêng biệt thay vì lặp lại ảnh đại diện.
+          <p className="text-sm text-gray-600 leading-normal max-w-2xl">
+            Tùy biến từng ô ảnh để hiển thị không gian, dịch vụ nổi bật của salon đến khách hàng. Mỗi vị trí có thể tải ảnh riêng biệt thay vì lặp lại ảnh đại diện.
           </p>
         </div>
       </div>
@@ -485,11 +484,11 @@ export function OwnerPhotosPage() {
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6 py-8">
-      <header>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+      <header className="mb-6 space-y-1">
+        <h1 className="text-2xl font-bold text-[#8C3A5A]">
           Quản lý hình ảnh salon
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="text-sm text-gray-600 leading-normal">
           Thiết kế khung ảnh Bento 5 vị trí, ảnh đại diện thương hiệu, thư viện và ảnh dịch vụ/nhân viên.
         </p>
       </header>

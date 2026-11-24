@@ -111,11 +111,11 @@ export function OwnerBillingPage() {
     <div className="space-y-7">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-2xl font-bold text-[#8C3A5A]">
             Thanh toán phí dịch vụ nền tảng
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Hóa đơn phí hoa hồng đơn hàng hoàn thành & thanh toán tự động qua PayOS (VietQR)
+          <p className="mt-1 text-sm text-gray-600">
+            Hóa đơn phí hoa hồng đơn hàng hoàn thành &amp; thanh toán tự động qua PayOS (VietQR)
           </p>
         </div>
 

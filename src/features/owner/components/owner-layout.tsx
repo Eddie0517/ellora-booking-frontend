@@ -396,11 +396,10 @@ export function OwnerLayout() {
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="flex items-center gap-2 hover:opacity-90 transition cursor-pointer"
+          className="flex items-center hover:opacity-90 transition cursor-pointer"
           title="Tải lại trang quản lý Salon"
         >
-          <img src="/ellora-logoHeader.png" alt="Ellora" className="h-7 w-auto object-contain" />
-          <span className="rounded-md bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-brand">Salon</span>
+          <img src="/ellora-logoHeader.png" alt="Ellora" className="h-9 w-auto object-contain" />
         </button>
 
         <div className="flex items-center gap-2">
@@ -443,13 +442,10 @@ export function OwnerLayout() {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="flex items-center gap-2.5 hover:opacity-90 transition cursor-pointer"
+              className="flex items-center hover:opacity-90 transition cursor-pointer"
               title="Tải lại trang quản lý Salon"
             >
-              <img src="/ellora-logoHeader.png" alt="Ellora" className="h-8 w-auto object-contain" />
-              <span className="rounded-md bg-rose-50 border border-pink-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand">
-                Chủ salon
-              </span>
+              <img src="/ellora-logoHeader.png" alt="Ellora" className="h-10 sm:h-11 w-auto object-contain" />
             </button>
             {open && (
               <button
@@ -473,9 +469,14 @@ export function OwnerLayout() {
               }`}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                  Cơ sở quản lý
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    Cơ sở quản lý
+                  </span>
+                  <span className="rounded-md bg-rose-50 border border-pink-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand">
+                    Chủ salon
+                  </span>
+                </div>
                 <div className="flex items-center gap-1">
                   {isOverdueLocked && (
                     <span className="rounded-md bg-red-100 border border-red-300 px-1.5 py-0.5 text-[9px] font-bold text-red-700">
@@ -598,16 +599,7 @@ export function OwnerLayout() {
       {/* Main Page Content Canvas */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Desktop Top Header with Sound Toggle & Notification Bell */}
-        <header className="sticky top-0 z-30 hidden lg:flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/95 px-8 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <span className="text-xs uppercase tracking-wider font-bold text-gray-400">
-              Quản lý:
-            </span>
-            <span className="text-sm font-bold text-gray-800">
-              {salon.data?.name || 'Salon Nail'}
-            </span>
-          </div>
-
+        <header className="sticky top-0 z-30 hidden lg:flex h-16 items-center justify-end border-b border-slate-200/80 bg-white/95 px-8 backdrop-blur-md">
           <div className="flex items-center gap-4">
             {notificationCluster}
           </div>

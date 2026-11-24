@@ -49,7 +49,7 @@ export function OwnerStaffPage() {
         <h1 className="text-2xl font-bold text-[#8C3A5A]">Quản lý nhân viên</h1>
         <p className="mt-1 text-sm text-gray-600">Thông tin đội ngũ salon.</p>
       </div>
-      <Button type="button" onClick={() => edit()} className="h-10 bg-primary-action px-5 text-brand-darker hover:bg-primary-action/90">Thêm nhân viên</Button>
+      <Button type="button" onClick={() => edit()} className="h-10 bg-primary-action px-5 text-white font-semibold shadow-xs hover:bg-primary-action/90">Thêm nhân viên</Button>
     </div>
 
     <Dialog open={open} onOpenChange={next => { if (!next && save.isPending) return; setOpen(next) }}>
@@ -60,7 +60,7 @@ export function OwnerStaffPage() {
       <label className="text-sm">Số điện thoại<input required type="tel" maxLength={20} value={draft.phone} onChange={event => setDraft({ ...draft, phone: event.target.value })} className="mt-2 w-full rounded-lg border p-3" /></label>
       <label className="text-sm sm:col-span-2">Giới thiệu<textarea maxLength={1000} value={draft.bio} onChange={event => setDraft({ ...draft, bio: event.target.value })} className="mt-2 w-full rounded-lg border p-3" /></label>
       <div className="flex gap-3 sm:col-span-2">
-        <Button disabled={save.isPending} className="h-10 bg-primary-action px-5 text-brand-darker hover:bg-primary-action/90">{save.isPending ? 'Đang lưu…' : 'Lưu nhân viên'}</Button>
+        <Button disabled={save.isPending} className="h-10 bg-primary-action px-5 text-white font-semibold shadow-xs hover:bg-primary-action/90">{save.isPending ? 'Đang lưu…' : 'Lưu nhân viên'}</Button>
         <Button type="button" variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
       </div>
       {save.isError && <p role="alert" className="text-red-700 sm:col-span-2">{apiError(save.error)}</p>}

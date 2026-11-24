@@ -194,16 +194,11 @@ export function OwnerSubscriptionPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-6">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand">
-              Dành cho Salon Đối tác
-            </span>
-          </div>
-          <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">
+          <h1 className="text-2xl font-bold text-[#8C3A5A]">
             Gói dịch vụ & Quyền lợi Salon
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Nâng tầm thương hiệu salon của bạn trên bản đồ và danh sách tìm kiếm, tiếp cận hàng ngàn khách hàng làm đẹp mỗi ngày.
+          <p className="mt-1 text-sm text-gray-600">
+            Giúp salon tăng khả năng hiển thị và tiếp cận nhiều khách hàng hơn.
           </p>
         </div>
 
@@ -252,20 +247,20 @@ export function OwnerSubscriptionPage() {
       )}
 
       {/* Active Subscription Banner */}
-      <section className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+      <section className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.03)]">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-start gap-4">
             <div
               className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-xs ${
                 effectiveTier === 'VIP'
-                  ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-amber-200'
+                  ? 'bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-600 text-amber-950 shadow-amber-300/60 ring-2 ring-yellow-200'
                   : effectiveTier === 'STANDARD'
                   ? 'bg-gradient-to-br from-rose-500 to-brand text-white shadow-rose-200'
                   : 'bg-slate-100 text-slate-500'
               }`}
             >
               {effectiveTier === 'VIP' ? (
-                <Crown className="h-7 w-7" />
+                <Crown className="h-7 w-7 fill-amber-950 text-amber-950" />
               ) : effectiveTier === 'STANDARD' ? (
                 <Sparkles className="h-7 w-7" />
               ) : (
@@ -290,7 +285,7 @@ export function OwnerSubscriptionPage() {
               <p className="mt-1 text-xs sm:text-sm text-gray-600">
                 {effectiveTier
                   ? 'Salon của bạn đang hưởng các đặc quyền ưu tiên hiển thị và nhận diện thương hiệu độc quyền.'
-                  : 'Salon của bạn đang sử dụng tài khoản cơ bản. Nâng cấp ngay để nhận huy hiệu xác thực và đưa tiệm lên đầu trang tìm kiếm.'}
+                  : 'Khám phá thêm quyền lợi hấp dẫn khi nâng cấp gói dịch vụ, giúp salon tăng độ nhận diện và tiếp cận nhiều khách hàng hơn.'}
               </p>
 
               {current.data?.startsAt && current.data?.expiresAt && (
@@ -454,17 +449,19 @@ export function OwnerSubscriptionPage() {
               return (
                 <article
                   key={plan.tier}
-                  className={`relative flex flex-col justify-between rounded-3xl border p-8 transition-all ${
+                  className={`relative flex flex-col justify-between rounded-3xl border p-8 transition-all duration-300 ${
                     isVip
-                      ? 'border-amber-400/80 bg-gradient-to-b from-amber-50/40 via-white to-white shadow-lg ring-1 ring-amber-400/30'
-                      : 'border-slate-200/90 bg-white shadow-xs hover:shadow-md'
+                      ? 'border-2 border-amber-400 bg-gradient-to-b from-[#FFFDF5] via-[#FFF8DE] to-[#FFFDF5] shadow-[0_20px_50px_-10px_rgba(245,158,11,0.28),0_10px_20px_-5px_rgba(245,158,11,0.15)] ring-2 ring-amber-400/40 hover:shadow-[0_25px_60px_-10px_rgba(245,158,11,0.38)] scale-[1.01]'
+                      : 'border-slate-200/90 bg-white shadow-[0_12px_36px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_-8px_rgba(0,0,0,0.12)]'
                   }`}
                 >
                   {/* VIP Ribbon badge */}
                   {isVip && (
                     <div className="absolute -top-3.5 right-8">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-3.5 py-1 text-xs font-bold text-white shadow-sm">
-                        <Crown className="h-3.5 w-3.5" /> Gói Khuyên Dùng
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 px-4 py-1.5 text-xs font-extrabold text-amber-950 shadow-[0_4px_14px_rgba(245,158,11,0.45)] ring-1 ring-yellow-200">
+                        <Crown className="h-4 w-4 fill-amber-950 text-amber-950" />
+                        <Sparkles className="h-3.5 w-3.5 text-amber-900" />
+                        <span>Gói Khuyên Dùng</span>
                       </span>
                     </div>
                   )}
@@ -475,11 +472,11 @@ export function OwnerSubscriptionPage() {
                         <div
                           className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
                             isVip
-                              ? 'bg-amber-100 text-amber-700'
+                              ? 'bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 text-amber-950 shadow-md shadow-amber-300/60 ring-2 ring-yellow-200'
                               : 'bg-rose-100 text-rose-700'
                           }`}
                         >
-                          {isVip ? <Crown className="h-6 w-6" /> : <Sparkles className="h-6 w-6" />}
+                          {isVip ? <Crown className="h-6 w-6 fill-amber-950 text-amber-950" /> : <Sparkles className="h-6 w-6" />}
                         </div>
                         <div>
                           <h3 className="text-xl font-bold text-gray-900">{plan.displayName}</h3>
@@ -499,7 +496,7 @@ export function OwnerSubscriptionPage() {
                     {/* Price */}
                     <div className="mt-6 border-b border-slate-100 pb-6">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">
+                        <span className={`text-3xl sm:text-4xl font-extrabold tracking-tight ${isVip ? 'text-amber-950' : 'text-gray-900'}`}>
                           {plan.monthlyPrice === null
                             ? 'Liên hệ'
                             : `${plan.monthlyPrice.toLocaleString('vi-VN')} ₫`}
@@ -564,8 +561,8 @@ export function OwnerSubscriptionPage() {
                           : cannotChoose
                           ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                           : isVip
-                          ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 shadow-amber-200'
-                          : 'bg-brand text-white hover:bg-brand-dark shadow-rose-200'
+                          ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-amber-950 font-extrabold hover:from-amber-600 hover:to-amber-500 shadow-md shadow-amber-500/30 ring-1 ring-amber-300'
+                          : 'bg-brand text-white font-semibold hover:bg-brand-dark shadow-md shadow-rose-200'
                       }`}
                     >
                       {isCurrent ? (

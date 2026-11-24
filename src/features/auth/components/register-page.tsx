@@ -93,43 +93,48 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="grid min-h-screen bg-[#f2e4ea] lg:grid-cols-12 font-sans">
-      {/* Left Column: Generated Nail Salon Photo & Ellora Logo */}
-      <div className="relative hidden lg:col-span-5 lg:flex lg:flex-col lg:justify-between p-8 xl:p-10 overflow-hidden bg-rose-100">
-        <img
-          src="/ellora-auth-salon.jpg"
-          alt="Ellora Nail Salon"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-white/75 via-white/30 to-transparent" />
+    <main className="grid min-h-screen bg-[#FDF8FA] lg:grid-cols-12 font-sans relative overflow-hidden">
+      {/* Left Column: Generated Nail Salon Photo & Ellora Logo as an elevated floating layer */}
+      <div className="relative hidden lg:col-span-5 lg:flex p-5 xl:p-7 z-20">
+        <div className="relative w-full h-full rounded-[36px] overflow-hidden shadow-[0_20px_50px_-10px_rgba(158,42,71,0.18)] border border-white/90 flex flex-col justify-between p-8 xl:p-10">
+          <img
+            src="/ellora-auth-salon.jpg"
+            alt="Ellora Nail Salon"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/80 via-white/35 to-transparent" />
 
-        <div className="relative z-10">
-          <Link
-            to="/"
-            className="inline-flex items-center rounded-2xl bg-white/85 backdrop-blur-md px-4 py-2.5 shadow-sm ring-1 ring-white/60 transition-transform duration-200 hover:scale-[1.02]"
-          >
-            <img
-              src="/ellora-logoHeader.png"
-              alt="Ellora"
-              className="h-9 w-auto object-contain"
-            />
-          </Link>
-        </div>
-      </div>
-
-      {/* Right Column: Centered Card Frame */}
-      <div className="relative flex items-center justify-center px-4 py-10 sm:px-6 lg:col-span-7 bg-gradient-to-br from-[#eedce4] via-[#f5e9ef] to-[#e5cdd8] overflow-hidden">
-        <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-rose-300/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-pink-300/30 blur-3xl" />
-
-        <div className="relative z-10 w-full max-w-[420px] rounded-3xl border border-white/90 bg-white p-8 sm:p-10 shadow-[0_25px_65px_-12px_rgba(95,35,60,0.24),0_8px_24px_-6px_rgba(95,35,60,0.12)]">
-          {/* Top Centered Logo & Heading */}
-          <div className="text-center mb-7">
-            <Link to="/" className="inline-block mb-3">
+          {/* Elevated Top Logo Pill */}
+          <div className="relative z-10">
+            <Link
+              to="/"
+              className="inline-flex items-center rounded-2xl bg-white/95 backdrop-blur-md px-5 py-3 shadow-md ring-1 ring-white/80 transition-transform duration-200 hover:scale-[1.03]"
+            >
               <img
                 src="/ellora-logoHeader.png"
                 alt="Ellora"
-                className="h-11 w-auto mx-auto object-contain"
+                className="h-12 w-auto object-contain"
+              />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column: Centered Card Frame with Soft Pearl Blush Layering */}
+      <div className="relative flex items-center justify-center px-4 py-10 sm:px-6 lg:col-span-7 bg-gradient-to-br from-[#FDF6F9] via-[#FAF0F4] to-[#F5E4EC] overflow-hidden">
+        {/* Soft layered background ambient orbs */}
+        <div className="pointer-events-none absolute -top-20 -right-20 h-96 w-96 rounded-full bg-rose-200/40 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-pink-200/35 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 bg-radial from-white/40 via-transparent to-transparent" />
+
+        <div className="relative z-10 w-full max-w-[430px] rounded-3xl border border-white/95 bg-white/95 backdrop-blur-sm p-8 sm:p-10 shadow-[0_20px_60px_-15px_rgba(158,42,71,0.15),0_8px_25px_-5px_rgba(0,0,0,0.04)]">
+          {/* Top Centered Logo & Heading */}
+          <div className="text-center mb-6">
+            <Link to="/" className="inline-block mb-3 transition-transform hover:scale-105">
+              <img
+                src="/ellora-logoHeader.png"
+                alt="Ellora"
+                className="h-14 sm:h-16 w-auto mx-auto object-contain"
               />
             </Link>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">

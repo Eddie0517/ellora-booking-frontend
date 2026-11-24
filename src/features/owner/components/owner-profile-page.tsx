@@ -12,7 +12,6 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
   ExternalLink,
 } from 'lucide-react'
 import { useOwnerSalon, useSaveOwnerSalon, useUploadOwnerImage } from '../queries/owner.queries'
@@ -105,14 +104,10 @@ export function OwnerProfilePage() {
     <main className="mx-auto max-w-4xl space-y-6 p-4 sm:p-8">
       {/* Header */}
       <div>
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand">
-          <Sparkles size={14} />
-          <span>Quản lý cơ sở</span>
-        </span>
-        <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
-          Hồ Sơ Salon
+        <h1 className="text-2xl font-bold text-[#8C3A5A]">
+          Hồ sơ salon
         </h1>
-        <p className="mt-1 text-xs sm:text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-600">
           Cập nhật thông tin nhận diện thương hiệu, địa chỉ và số điện thoại liên hệ để khách hàng tìm kiếm dễ dàng.
         </p>
       </div>

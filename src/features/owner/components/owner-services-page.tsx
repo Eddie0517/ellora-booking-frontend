@@ -58,7 +58,7 @@ export function OwnerServicesPage() {
         <h1 className="text-2xl font-bold text-[#8C3A5A]">Quản lý dịch vụ</h1>
         <p className="mt-1 text-sm text-gray-600">Cập nhật các dịch vụ và giá tại salon.</p>
       </div>
-      <Button type="button" onClick={() => edit()} className="h-10 bg-primary-action px-5 text-brand-darker hover:bg-primary-action/90">Thêm dịch vụ</Button>
+      <Button type="button" onClick={() => edit()} className="h-10 bg-primary-action px-5 text-white font-semibold shadow-xs hover:bg-primary-action/90">Thêm dịch vụ</Button>
     </div>
 
     <Dialog open={open} onOpenChange={next => { if (!next && (save.isPending || upload.isPending)) return; setOpen(next) }}>
@@ -77,7 +77,7 @@ export function OwnerServicesPage() {
         {upload.isError && <span role="alert">Không tải được ảnh: {apiError(upload.error)}</span>}
       </label>
       <div className="flex gap-3 sm:col-span-2">
-        <Button disabled={save.isPending || upload.isPending} className="h-10 bg-primary-action px-5 text-brand-darker hover:bg-primary-action/90">{save.isPending ? 'Đang lưu…' : 'Lưu dịch vụ'}</Button>
+        <Button disabled={save.isPending || upload.isPending} className="h-10 bg-primary-action px-5 text-white font-semibold shadow-xs hover:bg-primary-action/90">{save.isPending ? 'Đang lưu…' : 'Lưu dịch vụ'}</Button>
         <Button type="button" variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
       </div>
       {save.isError && <p role="alert" className="text-red-700 sm:col-span-2">{apiError(save.error)}</p>}
