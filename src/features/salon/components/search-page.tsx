@@ -69,13 +69,13 @@ export function SearchPage() {
   useEffect(() => {
     if (latitude !== undefined && longitude !== undefined && Number.isFinite(latitude) && Number.isFinite(longitude)) {
       setUserLocation((prev) => {
-        if (prev?.lat === latitude && prev?.lng === longitude && prev?.label === (location || 'Vị trí GPS của bạn')) {
+        if (prev?.lat === latitude && prev?.lng === longitude) {
           return prev
         }
         return {
           lat: latitude,
           lng: longitude,
-          label: location || 'Vị trí GPS của bạn',
+          label: location || 'Vị trí hiện tại của bạn (GPS)',
         }
       })
     } else if (!latStr && !lngStr) {
@@ -85,7 +85,7 @@ export function SearchPage() {
 
   const salons = useSalons({
     keyword,
-    location,
+    location: latitude !== undefined && longitude !== undefined ? undefined : location,
     date: date || undefined,
     time: time || undefined,
     sort,
@@ -104,7 +104,7 @@ export function SearchPage() {
       next.set('latitude', String(loc.lat))
       next.set('longitude', String(loc.lng))
       next.set('sort', 'distance')
-      if (loc.label) next.set('location', loc.label)
+      next.delete('location')
     } else {
       next.delete('latitude')
       next.delete('longitude')
