@@ -7,7 +7,7 @@ const processSteps = [
     title: 'Khám Phá & Chọn Tiệm Xinh',
     description:
       'Tìm tiệm nail phong cách gần bạn, xem hình ảnh thực tế, bảng giá niêm yết và đánh giá chân thực từ khách hàng.',
-    highlight: '500+ Salon tuyển chọn',
+    highlight: 'Uy tín và chất lượng',
   },
   {
     step: '02',
