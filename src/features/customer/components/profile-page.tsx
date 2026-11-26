@@ -21,7 +21,7 @@ export function ProfilePage() {
   const [message, setMessage] = useState('')
   const [isError, setIsError] = useState(false)
 
-  if (profile.isPending) {
+  if (profile.isPending && !profile.data) {
     return (
       <div className="space-y-4 animate-pulse">
         <div className="h-28 rounded-3xl bg-gray-100" />
@@ -30,7 +30,7 @@ export function ProfilePage() {
     )
   }
 
-  if (profile.isError) {
+  if ((profile.isError && !profile.data) || !profile.data) {
     return (
       <div className="rounded-3xl border border-red-200 bg-red-50/70 p-8 text-center">
         <AlertCircle size={32} className="mx-auto text-red-500" />

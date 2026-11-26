@@ -6,7 +6,15 @@ export const PROFILE_QUERY_KEYS = { all: ['profile'] as const, me: ['profile', '
 
 export const useProfile = () => {
   const token = useAuthStore(state => state.token)
-  return useQuery({ queryKey: PROFILE_QUERY_KEYS.me, queryFn: profileApi.me, enabled: !!token })
+  const authUser = useAuthStore(state => state.user)
+  return useQuery({
+    queryKey: PROFILE_QUERY_KEYS.me,
+    queryFn: profileApi.me,
+    enabled: !!token,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
+    placeholderData: authUser ?? undefined,
+  })
 }
 
 export const useUpdateProfile = () => {
