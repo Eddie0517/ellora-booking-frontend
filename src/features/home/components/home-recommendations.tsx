@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Compass, ArrowRight } from 'lucide-react'
 import { SalonCard } from '@/features/salon/components/salon-card'
@@ -83,16 +82,7 @@ const curatedSalons: Salon[] = [
   },
 ]
 
-const filterTabs = [
-  { id: 'all', label: 'Tất Cả' },
-  { id: 'nail-art', label: '✨ Nail Art Sang Chảnh' },
-  { id: 'gel', label: '💅 Sơn Gel Hàn Quốc' },
-  { id: 'spa', label: '🫧 Spa & Chăm Sóc' },
-  { id: 'vip', label: '👑 Salon VIP Tuyển Chọn' },
-]
-
 export function HomeRecommendations() {
-  const [activeTab, setActiveTab] = useState('all')
   const salonsQuery = useSalons({ page: 0, size: 8 })
 
   // Use API salons if available, otherwise use curated fallback list
@@ -130,26 +120,8 @@ export function HomeRecommendations() {
           </Link>
         </div>
 
-        {/* Filter Pills */}
-        <div className="mt-8 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-          {filterTabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
-                activeTab === tab.id
-                  ? 'bg-brand text-white shadow-xs'
-                  : 'border border-gray-200 bg-white text-gray-600 hover:border-pink-200 hover:text-brand'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
         {/* Salons Grid */}
-        <div className="mt-8">
+        <div className="mt-8 sm:mt-10">
           {salonsQuery.isPending && !salonsQuery.data ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[1, 2, 3, 4].map((n) => (
