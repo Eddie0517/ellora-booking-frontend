@@ -16,18 +16,31 @@ const roles: Record<string, { label: string; badge: string }> = {
   ADMIN: { label: 'Quản trị viên', badge: 'bg-gray-900 text-white border-gray-900' },
 }
 
+const roleFilters = [
+  { value: '', label: 'Tất cả' },
+  { value: 'CUSTOMER', label: 'Khách hàng' },
+  { value: 'SALON_OWNER', label: 'Chủ salon' },
+  { value: 'ADMIN', label: 'Quản trị viên' },
+]
+
 export function AdminUsersPage() {
   const { confirm } = useConfirm()
   const [input, setInput] = useState('')
   const [keyword, setKeyword] = useState('')
+  const [role, setRole] = useState('')
   const [page, setPage] = useState(0)
 
-  const users = useAdminUsers(keyword, page)
+  const users = useAdminUsers(keyword, role, page)
   const lock = useLockAdminUser()
 
   const search = (event: FormEvent) => {
     event.preventDefault()
     setKeyword(input.trim())
+    setPage(0)
+  }
+
+  const handleSelectRole = (nextRole: string) => {
+    setRole((prev) => (prev === nextRole && nextRole !== '' ? '' : nextRole))
     setPage(0)
   }
 
@@ -80,12 +93,13 @@ export function AdminUsersPage() {
             Tìm kiếm
           </button>
 
-          {keyword && (
+          {(keyword || role) && (
             <button
               type="button"
               onClick={() => {
                 setInput('')
                 setKeyword('')
+                setRole('')
                 setPage(0)
               }}
               className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-gray-600 hover:bg-slate-50 active:scale-95 transition"
@@ -94,6 +108,28 @@ export function AdminUsersPage() {
             </button>
           )}
         </form>
+
+        {/* Role Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-gray-400 mr-1">Lọc theo vai trò:</span>
+          {roleFilters.map((item) => {
+            const active = role === item.value
+            return (
+              <button
+                key={item.value || 'ALL'}
+                type="button"
+                onClick={() => handleSelectRole(item.value)}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                  active
+                    ? 'bg-brand text-white shadow-sm shadow-pink-500/20'
+                    : 'border border-slate-200 bg-white text-gray-600 hover:border-pink-200 hover:bg-rose-50/60 hover:text-brand'
+                }`}
+              >
+                {item.label}
+              </button>
+            )
+          })}
+        </div>
 
         {/* Data Table */}
         <div className="overflow-x-auto">
@@ -147,11 +183,20 @@ export function AdminUsersPage() {
                       </td>
 
                       <td className="py-3.5 px-3">
-                        <span
-                          className={`inline-block rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${roleConfig.badge}`}
+                        <button
+                          type="button"
+                          onClick={() => handleSelectRole(user.role)}
+                          title={
+                            role === user.role
+                              ? 'Bấm để bỏ lọc vai trò'
+                              : `Lọc tài khoản vai trò ${roleConfig.label}`
+                          }
+                          className={`inline-block rounded-full border px-2.5 py-0.5 text-[10px] font-bold transition cursor-pointer hover:opacity-80 active:scale-95 ${roleConfig.badge} ${
+                            role === user.role ? 'ring-2 ring-brand/40 ring-offset-1' : ''
+                          }`}
                         >
                           {roleConfig.label}
-                        </span>
+                        </button>
                       </td>
 
                       <td className="py-3.5 px-3">

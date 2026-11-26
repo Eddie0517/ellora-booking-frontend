@@ -49,9 +49,14 @@ export const adminApi = {
     return adminRevenueMapper.toModel(unwrap<AdminRevenueReportDto>(response.data))
   },
 
-  async users(keyword: string, page: number): Promise<PageModel<AdminUser>> {
+  async users(keyword: string, role: string, page: number): Promise<PageModel<AdminUser>> {
     const response = await api.get<any>(ADMIN_ENDPOINTS.users, {
-      params: { keyword: keyword || '', page, pageSize: 20 },
+      params: {
+        ...(keyword ? { keyword } : {}),
+        ...(role ? { role } : {}),
+        page,
+        pageSize: 20,
+      },
     })
     return adminUserMapper.toPaginationModel(unwrap(response.data))
   },

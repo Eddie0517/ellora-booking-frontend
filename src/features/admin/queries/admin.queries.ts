@@ -5,7 +5,7 @@ export const ADMIN_QUERY_KEYS = {
   all: ['admin'] as const,
   summary: ['admin', 'summary'] as const,
   revenue: (from: string, to: string, groupBy: string) => ['admin', 'revenue', from, to, groupBy] as const,
-  users: (keyword: string, page: number) => ['admin', 'users', keyword, page] as const,
+  users: (keyword: string, role: string, page: number) => ['admin', 'users', keyword, role, page] as const,
 }
 export const ADMIN_SALON_KEYS = {
   all: ['admin', 'salons'] as const,
@@ -33,8 +33,8 @@ export const useAdminRevenue = (from: string, to: string, groupBy: 'day' | 'week
     enabled: Boolean(from && to && from <= to),
   })
 
-export const useAdminUsers = (keyword: string, page: number) =>
-  useQuery({ queryKey: ADMIN_QUERY_KEYS.users(keyword, page), queryFn: () => adminApi.users(keyword, page) })
+export const useAdminUsers = (keyword: string, role: string, page: number) =>
+  useQuery({ queryKey: ADMIN_QUERY_KEYS.users(keyword, role, page), queryFn: () => adminApi.users(keyword, role, page) })
 
 export const useLockAdminUser = () => {
   const client = useQueryClient()
