@@ -1,4 +1,4 @@
-import { Sparkles, CalendarDays, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { Sparkles, CalendarDays, CheckCircle2 } from 'lucide-react'
 
 const processSteps = [
   {
@@ -33,16 +33,9 @@ export function HomeProcess() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Heading */}
         <div className="mx-auto max-w-2xl text-center">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-pink-100 bg-rose-50/70 px-3.5 py-1 text-xs font-semibold text-brand">
-            <ShieldCheck size={14} />
-            <span>Quy trình đơn giản</span>
-          </div>
-          <h2 className="mt-3 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
             Làm Móng Đẹp Chỉ Với 3 Bước
           </h2>
-          <p className="mt-2 text-sm text-gray-500 sm:text-base">
-            Ellora giúp bạn loại bỏ hoàn toàn việc chờ đợi và thủ tục đặt hẹn rườm rà.
-          </p>
         </div>
 
         {/* 3 Step Cards */}
