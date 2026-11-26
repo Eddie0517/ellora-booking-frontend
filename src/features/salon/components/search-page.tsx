@@ -5,7 +5,6 @@ import {
   ChevronRight,
   SlidersHorizontal,
   SearchX,
-  Sparkles,
   Map as MapIcon,
   LayoutGrid,
   MapPin,
@@ -174,16 +173,9 @@ export function SearchPage() {
         {/* Page Title & Search Header */}
         <div className="mb-8 flex flex-col items-start gap-4">
           <div>
-            <div className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand">
-              <Sparkles size={14} />
-              <span>Khám phá điểm đến làm đẹp</span>
-            </div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               Tìm Tiệm Nail & Salon Phù Hợp
             </h1>
-            <p className="mt-2 text-sm text-gray-500 sm:text-base">
-              Lựa chọn hàng trăm salon uy tín với giá niêm yết rõ ràng và đặt hẹn dễ dàng.
-            </p>
           </div>
 
           <div className="w-full pt-2">
